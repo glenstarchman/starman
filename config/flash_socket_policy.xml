@@ -1,0 +1,7 @@
+<!--
+  ~ Copyright (c) 2015. Didd, Inc All Rights Reserved
+  -->
+
+<cross-domain-policy>
+  <allow-access-from domain="*" to-ports="*" />
+</cross-domain-policy>
