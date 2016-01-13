@@ -1,5 +1,5 @@
 /* an HTTP client helper based on http4s */
-package com.starman.common
+package com.superman.common
 
 import java.util.concurrent.ScheduledExecutorService
 import java.io._
@@ -17,12 +17,20 @@ import org.http4s.Status.NotFound
 import org.http4s.Status.ResponseClass.Successful
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import com.starman.common.exceptions._
-import com.starman.common.helpers.FileWriter
+import com.superman.common.exceptions._
+import com.superman.common.helpers.FileWriter
 
-class HttpClient(url: String, timeout: Duration = 30 second, method: String = "GET", data: Map[String, Seq[String]] = Map.empty, headers: Map[String, String] = Map.empty ) {
+class HttpClient(url: String, 
+                 timeout: Duration = 30 second, 
+                 method: String = "GET", 
+                 data: Map[String, Seq[String]] = Map.empty, 
+                 headers: Map[String, String] = Map.empty ) {
 
   implicit val formats = DefaultFormats
+  implicit def bv2str(bv: ByteVector): String = bv.toIterable.map(_.toChar).mkString("")
+  implicit def bv2jsoninput(bv: ByteVector): JsonInput = bv2str(bv)
+
+
   val baseClient = middleware.FollowRedirect(1)(defaultClient)
 
   val params = data.map { case (k, v) => s"${k}=${v(0)}" }.mkString("&")
@@ -69,14 +77,14 @@ class HttpClient(url: String, timeout: Duration = 30 second, method: String = "G
     getUri(s"${s}${paramStr}")
   }
 
-  private[this] def asJson(s: String) = try {
+  private[this] def asJson(s: ByteVector) = try {
     parse(s)
   } catch {
     case e: Exception => throw(new ExternalResponseException(
                             message = url, exc = Option(e)))
   }
 
-  private[this] def asMap(s: String) = try {
+  private[this] def asMap(s: ByteVector) = try {
     asJson(s).extract[Map[String, Any]]
   } catch {
     case e: Exception => throw(new ExternalResponseException(
@@ -85,7 +93,7 @@ class HttpClient(url: String, timeout: Duration = 30 second, method: String = "G
 
   def fetchRaw() = {
     val res = client.flatMap {
-      case Successful(resp) => resp.as[ByteVector].map(x=>x)
+      case Successful(resp) => resp.as[ByteVector]
       case NotFound(resp) => throw(new UrlNotFoundException(message=url))
       case resp => throw(new ExternalResponseException(message = resp.toString)) 
     }
@@ -94,25 +102,19 @@ class HttpClient(url: String, timeout: Duration = 30 second, method: String = "G
       res.timed(timeout).run
     } catch {
       case e: TimeoutException  => throw(new ExternalResponseTimeoutException(message = url))
-      case e: Exception => {
-        throw(e)
-        //throw(new ExternalResponseException(message = url, exc=Option(e)))
-      }
+      case e: Exception => 
+        throw(new ExternalResponseException(message = url, exc=Option(e)))
     }
   }
 
-  private[this] def fetchAsString() = fetchRaw
-    .asInstanceOf[ByteVector]
-    .toIterable
-    .map(_.toChar)
-    .mkString("") 
-
+  //use implicit to convert ByteVector => String
+  private[this] def fetchAsString():String = fetchRaw
   def fetch() = fetchAsString
-  def fetch[T](callback : (String) => T) = callback(fetchAsString) 
+  def fetch[T](callback : (ByteVector) => T) = callback(fetchRaw)
   def fetchAsMap() = fetch(asMap)
-  def fetchAsJson() = fetch(asJson) 
-
-  /* fetch a resource from a URL and save as a file */
+  def fetchAsJson() = fetch(asJson)
+  /* fetch a resource from a URL and save as a file 
+  works with binary and text resources */
   def fetchAsFile(fileName: String) = {
     val r = fetchRaw.toIterable.toArray
 		FileWriter.write(r, fileName)
