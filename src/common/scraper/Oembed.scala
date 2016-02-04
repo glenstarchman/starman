@@ -1,10 +1,6 @@
-/*
- * Copyright (c) 2015. Didd, Inc All Rights Reserved
- */
-
 package com.starman.common.scraper
 
-import scala.concurrent.duration._
+//import scala.concurrent.duration._
 import com.starman.common.exceptions._
 import com.starman.common.HttpClient
 import com.starman.common.helpers.Text

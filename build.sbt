@@ -76,6 +76,7 @@ lazy val deploy = inputKey[Unit]("Run deployment tasks")
 lazy val api = (project in (file(".")))
   .enablePlugins(BuildInfoPlugin)
   .settings(baseBuildSettings ++ scalateSettings ++ templateSettings ++ Seq(
+    unmanagedSourceDirectories in Compile += baseDirectory.value / "src",
     mainClass in (Compile, run) := Some("com.starman.api.Boot"),
     migrate := Def.inputTaskDyn {
       val args: Seq[String] = spaceDelimited("<arg>").parsed

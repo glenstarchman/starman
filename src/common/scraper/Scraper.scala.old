@@ -1,0 +1,128 @@
+/* * Copyright (c) 2015. Didd, Inc All Rights Reserved
+ */
+
+package com.didd.common.scraper
+
+import java.net.URL
+import net.ruippeixotog.scalascraper.browser.Browser
+import net.ruippeixotog.scalascraper.dsl.DSL._
+import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
+import net.ruippeixotog.scalascraper.dsl.DSL.Parse._
+import org.jsoup.nodes.Document
+import com.didd.common.helpers.{ImageHandler, ImageHelper}
+import com.didd.common.DiddConfigFactory.config
+import com.didd.common.helpers.Text
+
+class Scraper(u: String) {
+
+  val MINIMUM_IMAGE_WIDTH = 64
+  val OEMBED_PROVIDERS = List("youtube", "vimeo", "instagram", "soundcloud", "twitter", "vine")
+
+  val url = Text.httpize(u)
+  lazy val _url = new URL(url)
+  lazy val protocol = _url.getProtocol 
+  lazy val host = _url.getHost
+  lazy val port = _url.getPort
+  lazy val path = _url.getPath
+  lazy val params = _url.getQuery
+
+  lazy private val browser = new Browser 
+  lazy private val doc: Document = browser.get(url) 
+  
+  //validate that a URL is of the correct format for the provider
+  lazy val isUrlValid = {
+    provider match {
+      case "youtube" => {
+        (path.matches("/watch") && params.matches("v=([-_.a-zA-Z0-9]*)([&-_.a-zA-Z0-9]*)")) ||
+        (path.matches("/([-_.a-zA-Z0-9]*)"))
+      }
+
+      case "facebook" => path.matches("/([a-zA-Z0-9.-]*)/posts/([0-9]*)") 
+      case "twitter" => path.matches("/([a-zA-Z0-9.-]*)/status/([0-9]*)")
+      case "instagram" =>  path.matches("/p/([-._a-zA-Z0-9]*)")
+      case "vine" => path.matches("/v/([-._a-zA-Z0-9]*)")
+      case "soundcloud" => path.matches("/([-._a-zA-Z0-9]*)/([-._a-zA-Z0-9]*)")
+      case "vimeo" => path.matches("/([0-9]+)") 
+      case _ => true
+    }
+  }
+
+  //determine the type of the url
+  def provider: String  = {
+    val domain_parts = host.split('.').toList
+    domain_parts match {
+      case _::"youtube"::_ | "youtube"::_ | _::"youtu"::_ | "youtu"::_ | "tu"::"be"::_ => "youtube"
+      case _::"facebook"::_ | "facebook"::_ | "fb"::_ => "facebook"
+      case _::"instagram"::_ | "instagram"::_ | "instagr"::"am"::_ => "instagram"
+      case _::"vimeo"::_ | "vimeo"::_ => "vimeo"
+      case _::"twitter"::_ | "twitter"::_ => "twitter"
+      case _::"soundcloud"::_ | "soundcloud"::_ => "soundcloud"
+      case "vine"::"co"::_ | _::"vine"::_  | "vine"::_ => "vine"
+      case _ => host 
+    }
+  }
+
+	lazy val isOembedProject = (provider != host) && isUrlValid
+
+  private def getTitle() = try {
+    doc >> text("title")
+  } catch {
+    case e: Exception => ""
+  }
+
+  private def getImages() = {
+    val imageUrls = doc >> attrs("src")("img")
+    val imageTitles = doc >> attrs("title")("img")
+    val imageAlts = doc >> attrs("alt")("img")
+    val finalImageUrls = imageUrls.map(img => Text.httpize(img)) 
+
+    val imageData = (finalImageUrls.toList, imageTitles.toList, imageAlts.toList).zipped.toList
+
+    imageData.par.map(image => {
+      val d = ImageHandler.getImageDimensions(image._1)
+      val dimensions = if (d!=null) d else Array[Int](0,0,0)
+      Map(
+        "src" -> image._1,
+        "title" -> (image._2 match {
+          case title:String => title
+          case _ => image._3 match {
+            case alt: String => alt
+            case _ => "No Description"
+          }  
+        }),
+        "dimensions" -> List(dimensions(0), dimensions(1)),
+        "fileSize" -> dimensions(2)
+      )
+    }).filter(x => x("dimensions").asInstanceOf[List[Int]](0) >= MINIMUM_IMAGE_WIDTH).toList
+  }
+
+  lazy val oembed = provider match {
+    case p if OEMBED_PROVIDERS.contains(provider) => Oembed.fetch(url, provider)
+    case _ => Map[String, String]() 
+  }
+
+  lazy val assets:Map[String, Any] = {
+    val o = oembed
+    /*val images = try {
+      getImages
+    } catch {
+      case e: Exception => List.empty
+    }
+    */
+    val title = provider match {
+      case "website" => getTitle
+      case _ => oembed.getOrElse("title", getTitle)
+    }
+    Map(
+      //"images" -> images,
+      "oembed" -> oembed,
+      "title" -> title/*,
+    "screenshots" -> ImageHelper.getScreenshots(url)
+    */
+    )
+  }
+}
+
+object Scraper {
+  def apply(url: String) = new Scraper(url)
+}

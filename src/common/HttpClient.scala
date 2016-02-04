@@ -1,5 +1,5 @@
 /* an HTTP client helper based on http4s */
-package com.superman.common
+package com.starman.common
 
 import java.util.concurrent.ScheduledExecutorService
 import java.io._
@@ -17,14 +17,10 @@ import org.http4s.Status.NotFound
 import org.http4s.Status.ResponseClass.Successful
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import com.superman.common.exceptions._
-import com.superman.common.helpers.FileWriter
+import com.starman.common.exceptions._
+import com.starman.common.helpers.FileWriter
 
-class HttpClient(url: String, 
-                 timeout: Duration = 30 second, 
-                 method: String = "GET", 
-                 data: Map[String, Seq[String]] = Map.empty, 
-                 headers: Map[String, String] = Map.empty ) {
+class HttpClient(url: String, timeout: Duration = 30 second, method: String = "GET", data: Map[String, Seq[String]] = Map.empty, headers: Map[String, String] = Map.empty ) {
 
   implicit val formats = DefaultFormats
   implicit def bv2str(bv: ByteVector): String = bv.toIterable.map(_.toChar).mkString("")
