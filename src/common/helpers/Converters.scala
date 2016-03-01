@@ -2,13 +2,13 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common.converters
+package starman.common.converters
 
 import scala.reflect._
 import scala.reflect.runtime.universe._
 import scala.util.parsing.json.{JSON, JSONObject, JSONArray}
-import com.starman.common.helpers.Text._
-import com.starman.common.Types._
+import starman.common.helpers.Text._
+import starman.common.Types._
 
 
 /* all kinds of conversions between types, some used in implicits */

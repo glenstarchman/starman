@@ -1,4 +1,4 @@
-package com.starman.data.models
+package starman.data.models
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -9,7 +9,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.Extraction._
 import org.json4s.native.Serialization._
 import org.json4s.native.Serialization
-import com.starman.common.Types._
+import starman.common.Types._
 import StarmanSchema._
 
 case class ActivityStream(override var id: Long=0, 

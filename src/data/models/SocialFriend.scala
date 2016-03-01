@@ -2,10 +2,10 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data.models
+package starman.data.models
 
 import java.sql.Timestamp
-import com.starman.common.Types._
+import starman.common.Types._
 import StarmanSchema._
 
 

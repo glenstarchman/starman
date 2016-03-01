@@ -1,7 +1,7 @@
-/* * Copyright (c) 2015. Didd, Inc All Rights Reserved
+/* * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common.scraper
+package starman.common.scraper
 
 import java.net.URL
 import net.ruippeixotog.scalascraper.browser.Browser
@@ -9,13 +9,20 @@ import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL.Parse._
 import org.jsoup.nodes.Document
-import com.starman.common.helpers.{ImageHandler, ImageHelper}
-import com.starman.common.StarmanConfigFactory.config
-import com.starman.common.helpers.Text
+import starman.common.helpers.{ImageHandler, ImageHelper}
+import starman.common.StarmanConfigFactory.config
+import starman.common.helpers.Text
+import starman.common.converters.Convertable
+
+case class ImageInfo(src: String, title: String, dimensions: List[Int], fileSize: Int) extends Convertable 
+case class PageInfo(title: String, images: List[ImageInfo], 
+                    oembed: Map[String, String], description: String) extends Convertable
 
 class Scraper(u: String) {
 
-  val MINIMUM_IMAGE_WIDTH = 64
+  val MINIMUM_IMAGE_WIDTH = 64 
+  val MINIMUM_IMAGE_HEIGHT = 64 
+  val MAX_IMAGE_COUNT = 5
   val OEMBED_PROVIDERS = List("youtube", "vimeo", "instagram", "soundcloud", "twitter", "vine")
 
   val url = Text.httpize(u)
@@ -64,36 +71,63 @@ class Scraper(u: String) {
 
 	lazy val isOembedProject = (provider != host) && isUrlValid
 
-  private def getTitle() = try {
-    doc >> text("title")
-  } catch {
-    case e: Exception => ""
+
+  lazy val ogTitle = 
+    doc >?> attr("content")("meta[property=og:title]") 
+
+  lazy val ogImage =  
+    doc >?> attr("content")("meta[property=og:image]") 
+
+  lazy val ogDescription =  
+    doc >?> attr("content")("meta[property=og:description]") 
+
+
+  private def getTitle() = ogTitle match {
+    case Some(x) if x.length > 0 => x
+    case _ => try {
+      doc >> text("title")
+    } catch {
+      case e: Exception => ""
+    }
+  }
+
+  private def getDescription() = ogDescription match {
+    case Some(x) if x.length > 0 => x
+    case _ => try {
+      doc >> text("title")
+    } catch {
+      case e: Exception => ""
+    }
   }
 
   private def getImages() = {
-    val imageUrls = doc >> attrs("src")("img")
-    val imageTitles = doc >> attrs("title")("img")
-    val imageAlts = doc >> attrs("alt")("img")
-    val finalImageUrls = imageUrls.map(img => Text.httpize(img)) 
+    val imageData = ogImage match {
+      case Some(x) if x.length > 0 => List((x, "", ""))
+      case _ => {
+        val imageUrls = doc >> attrs("src")("img")
+        val imageTitles = doc >> attrs("title")("img")
+        val imageAlts = doc >> attrs("alt")("img")
+        val finalImageUrls = imageUrls.map(img => Text.httpize(img)) 
+        (finalImageUrls.toList, imageTitles.toList, imageAlts.toList).zipped.toList
+      }
+    }
 
-    val imageData = (finalImageUrls.toList, imageTitles.toList, imageAlts.toList).zipped.toList
-
-    imageData.par.map(image => {
+    imageData.take(MAX_IMAGE_COUNT).par.map(image => {
       val d = ImageHandler.getImageDimensions(image._1)
       val dimensions = if (d!=null) d else Array[Int](0,0,0)
-      Map(
-        "src" -> image._1,
-        "title" -> (image._2 match {
+      ImageInfo(
+        src =  image._1,
+        title = (image._2 match {
           case title:String => title
           case _ => image._3 match {
             case alt: String => alt
             case _ => "No Description"
           }  
         }),
-        "dimensions" -> List(dimensions(0), dimensions(1)),
-        "fileSize" -> dimensions(2)
+        dimensions = List(dimensions(0), dimensions(1)),
+        fileSize =  dimensions(2)
       )
-    }).filter(x => x("dimensions").asInstanceOf[List[Int]](0) >= MINIMUM_IMAGE_WIDTH).toList
+    }).filter(x => x.dimensions(0) >= MINIMUM_IMAGE_WIDTH && x.dimensions(1) >= MINIMUM_IMAGE_HEIGHT).toList
   }
 
   lazy val oembed = provider match {
@@ -101,25 +135,21 @@ class Scraper(u: String) {
     case _ => Map[String, String]() 
   }
 
-  lazy val assets:Map[String, Any] = {
+  lazy val assets = {
     val o = oembed
-    /*val images = try {
+    val images = try {
       getImages
     } catch {
       case e: Exception => List.empty
     }
-    */
+    
     val title = provider match {
       case "website" => getTitle
       case _ => oembed.getOrElse("title", getTitle)
     }
-    Map(
-      //"images" -> images,
-      "oembed" -> oembed,
-      "title" -> title/*,
-    "screenshots" -> ImageHelper.getScreenshots(url)
-    */
-    )
+
+    PageInfo(title = title, images = images, oembed = oembed,
+             description = getDescription)
   }
 }
 

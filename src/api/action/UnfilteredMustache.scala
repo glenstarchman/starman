@@ -2,17 +2,17 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.api.action
+package starman.api.action
 
 import xitrum.annotation.GET
-import com.starman.common.helpers.FileReader
+import starman.common.helpers.FileReader
 
 @GET("", "index", "app")
 class IndexAction extends BaseAction {
 
   private def buildDataJs(data: Map[String, Any]) = {
     data match {
-      case x if x == Map.empty  => "" 
+      case x if x == Map.empty  => ""
       case _ => {
         s"""<script type="text/javascript">
           var templateData = ${jsonizeData(data)};
@@ -21,7 +21,7 @@ class IndexAction extends BaseAction {
     }
   }
 
-  private def buildMustacheTag(id: String, s: String) = 
+  private def buildMustacheTag(id: String, s: String) =
 s"""<script type="text/html" id="${id}">
 ${s}
 </script>
@@ -37,8 +37,8 @@ ${s}
       }
 
       val templateData = paramo("templateData") match {
-        case Some(data) => data 
-        case _ => "" 
+        case Some(data) => data
+        case _ => ""
       }
 
       //create a map of the templates
@@ -57,21 +57,20 @@ ${s}
 
       val data = userAsMap ++ Map(
         "is_bot" -> isBot,
-        "dev_mode" -> devMode, 
+        "dev_mode" -> devMode,
         "cdn_uri" -> cdnUri,
-        "templates" -> templates, 
+        "templates" -> templates,
         "userData" -> userDataJs,
         "environment" -> env,
         "gitHash" -> infoMap("gitHash").toString,
         "version" -> infoMap("version").toString
         //"templateData" -> templateData*/
+
       )
 
       data.foreach(d => at(d._1) = d._2)
       val index = MustacheFileReader.render(original_path, this, data)
-      
       respondText(index, "text/html", true)
     }
   }
 }
-

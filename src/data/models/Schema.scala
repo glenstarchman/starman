@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data.models
+package starman.data.models
 
 //import org.squeryl.PrimitiveTypeMode._
 import scala.collection.mutable.ArrayBuffer
@@ -25,11 +25,11 @@ import org.json4s.jackson.JsonMethods._
 import java.util.Date
 import java.sql.Timestamp
 import org.squeryl.PrimitiveTypeMode
-import com.starman.common.StarmanCache._
-import com.starman.data.ConnectionPool
-import com.starman.common.helpers.Text._
-import com.starman.common.helpers.{FileReader, FileWriter}
-import com.starman.common.Log
+import starman.common.StarmanCache._
+import starman.data.ConnectionPool
+import starman.common.helpers.Text._
+import starman.common.helpers.{FileReader, FileWriter}
+import starman.common.Log
 
 object SquerylEntrypoint extends PrimitiveTypeMode 
 

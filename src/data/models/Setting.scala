@@ -1,14 +1,14 @@
-package com.starman.data.models
+package starman.data.models
 
 
 import java.sql.Timestamp
-import com.starman.common.Types._
+import starman.common.Types._
 import StarmanSchema._
-import com.starman.common.StarmanCache._
-import com.starman.data.ConnectionPool
-import com.starman.common.exceptions._
-import com.starman.common.Codes._
-import com.starman.common.Enums._
+import starman.common.StarmanCache._
+import starman.data.ConnectionPool
+import starman.common.exceptions._
+import starman.common.Codes._
+import starman.common.Enums._
 
 case class Setting(override var id: Long=0, 
                 var userId: Long = 0,

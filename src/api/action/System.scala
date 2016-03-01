@@ -1,15 +1,15 @@
-package com.starman.api.action
+package starman.api.action
 
 import xitrum.annotation.{GET, POST, First, Swagger}
 import xitrum.SkipCsrfCheck
-import com.starman.data.models._
-import com.starman.data.models.StarmanSchema._
-import com.starman.common.converters.ListConverter
-import com.starman.common.StarmanConfigFactory.{env, config}
-import com.starman.common.social.StarmanFacebook
-import com.starman.common.exceptions._
-import com.starman.common.Codes.StatusCode
-import com.starman.common.Enums._
+import starman.data.models._
+import starman.data.models.StarmanSchema._
+import starman.common.converters.ListConverter
+import starman.common.StarmanConfigFactory.{env, config}
+import starman.common.social.StarmanFacebook
+import starman.common.exceptions._
+import starman.common.Codes.StatusCode
+import starman.common.Enums._
 
 
 @Swagger(

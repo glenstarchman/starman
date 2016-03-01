@@ -2,17 +2,17 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data.models
+package starman.data.models
 
 import scala.reflect.runtime.{ universe => ru }
 import scala.concurrent.duration._
 import java.sql.Timestamp
 import org.squeryl._
-import com.starman.common.converters._
-import com.starman.common.Types._
-import com.starman.data.models.StarmanSchema._
-import com.starman.common.StarmanCache._
-import com.starman.common.helpers.{Text}
+import starman.common.converters._
+import starman.common.Types._
+import starman.data.models.StarmanSchema._
+import starman.common.StarmanCache._
+import starman.common.helpers.{Text}
 
 trait BaseStarmanTable extends Convertable with KeyedEntity[Long]
 

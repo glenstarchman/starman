@@ -1,4 +1,4 @@
-package com.starman.common
+package starman.common
 
 import scala.concurrent.duration._
 import scala.concurrent._

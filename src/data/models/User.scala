@@ -2,19 +2,19 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data.models
+package starman.data.models
 
 import java.sql.Timestamp
 import scala.collection.mutable.ListBuffer
-import com.starman.common.helpers.{Hasher, TokenGenerator}
-import com.starman.common.Types._
+import starman.common.helpers.{Hasher, TokenGenerator}
+import starman.common.Types._
 import StarmanSchema._
-import com.starman.common.StarmanCache._
-import com.starman.common.StarmanConfigFactory.generalConfig
-import com.starman.data.ConnectionPool
-import com.starman.common.exceptions._
-import com.starman.common.Codes._
-import com.starman.common.Enums._
+import starman.common.StarmanCache._
+import starman.common.StarmanConfigFactory.generalConfig
+import starman.data.ConnectionPool
+import starman.common.exceptions._
+import starman.common.Codes._
+import starman.common.Enums._
 
 object UserHelper {
 

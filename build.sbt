@@ -8,7 +8,7 @@ scalacOptions += "-P:xgettext:xitrum.I18n"
 autoCompilerPlugins := true
 
 val commonSettings = Seq(
-  organization := "com.starman",
+  organization := "starman",
   version := "1.0.0",
   scalaVersion := "2.11.7",
   crossScalaVersions := Seq("2.11.7"),
@@ -48,7 +48,7 @@ val baseBuildSettings = commonSettings ++ Seq(
       }
     }.toString()
   ),
-	buildInfoPackage := "com.starman.common",
+	buildInfoPackage := "starman.common",
 	buildInfoOptions += BuildInfoOption.BuildTime,
   buildInfoOptions += BuildInfoOption.ToMap,
   unmanagedClasspath in Compile <+= (baseDirectory) map { bd => Attributed.blank(bd / "config") },
@@ -77,14 +77,14 @@ lazy val api = (project in (file(".")))
   .enablePlugins(BuildInfoPlugin)
   .settings(baseBuildSettings ++ scalateSettings ++ templateSettings ++ Seq(
     unmanagedSourceDirectories in Compile += baseDirectory.value / "src",
-    mainClass in (Compile, run) := Some("com.starman.api.Boot"),
+    mainClass in (Compile, run) := Some("starman.api.Boot"),
     migrate := Def.inputTaskDyn {
       val args: Seq[String] = spaceDelimited("<arg>").parsed
-      (runMain in Compile).toTask(s" com.starman.data.Migrate ${args.mkString(" ")}")
+      (runMain in Compile).toTask(s" starman.data.Migrate ${args.mkString(" ")}")
     }.evaluated,
     deploy := Def.inputTaskDyn {
       val args: Seq[String] = spaceDelimited("<arg>").parsed
-      (runMain in Compile).toTask(s" com.starman.common.Deploy ${args.mkString(" ")}")
+      (runMain in Compile).toTask(s" starman.common.Deploy ${args.mkString(" ")}")
     }.evaluated,
     ScalateKeys.scalateTemplateConfig in Compile := Seq(TemplateConfig(
       baseDirectory.value / "templates",
@@ -120,6 +120,8 @@ lazy val api = (project in (file(".")))
       "com.mindscapehq" % "core" % "2.0.0",
       "net.sf.uadetector" % "uadetector-core" % "0.9.22",
       "net.sf.uadetector" % "uadetector-resources" % "2014.10",
+      "com.vividsolutions" % "jts" % "1.13",
+      "org.opentripplanner" % "otp" % "0.13.0",
       //"com.cloudinary" % "cloudinary-core" % "1.2.2",
       //"com.cloudinary" % "cloudinary-http44" % "1.2.2",
       //"com.github.detro.ghostdriver" % "phantomjsdriver" % "1.1.0",
@@ -137,6 +139,7 @@ lazy val api = (project in (file(".")))
 
 lazy val migrations = (project in (file("migrations")))
   .settings(commonSettings ++ Seq(
+    unmanagedSourceDirectories in Compile += baseDirectory.value,
     libraryDependencies ++= Seq(
       "com.imageworks.scala-migrations" %% "scala-migrations" % "1.1.1"
     )
@@ -147,6 +150,7 @@ lazy val migrations = (project in (file("migrations")))
 lazy val macros  = (project in file("macros")) 
   .settings(
     commonSettings ++ Seq(
+      unmanagedSourceDirectories in Compile += baseDirectory.value,
       libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)
     )
   )

@@ -1,10 +1,10 @@
-package com.starman.common.scraper
+package starman.common.scraper
 
 //import scala.concurrent.duration._
-import com.starman.common.exceptions._
-import com.starman.common.HttpClient
-import com.starman.common.helpers.Text
-import com.starman.common.StarmanConfigFactory.config
+import starman.common.exceptions._
+import starman.common.HttpClient
+import starman.common.helpers.Text
+import starman.common.StarmanConfigFactory.config
 
 object Oembed {
   private final val PROVIDERS = Map(

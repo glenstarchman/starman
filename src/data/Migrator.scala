@@ -2,19 +2,19 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data
+package starman.data
 
 import java.io.{File, FilenameFilter}
 import scala.util.Properties
 import org.apache.commons.io.filefilter.WildcardFileFilter
 import org.joda.time.format.ISODateTimeFormat
 import com.imageworks.migration._
-import com.starman.common.helpers.Text._
-import com.starman.common.StarmanCache
+import starman.common.helpers.Text._
+import starman.common.StarmanCache
 
 object Migrate { 
 
-  val namespace  = "com.starman.migrations"
+  val namespace  = "starman.migrations"
 
   lazy val migrator = {
     val driver_class_name = "org.postgresql.Driver"
@@ -55,7 +55,7 @@ object Migrate {
   }
 
 
-  lazy val migrationPath = s"${System.getProperty("user.dir")}/migrations/src/main/scala"
+  lazy val migrationPath = s"${System.getProperty("user.dir")}/migrations"
   private def checkMigrationExists(name:String) = {
     val glob = s"*_${name}.scala"
     val filter: FilenameFilter = new WildcardFileFilter(glob)
@@ -81,7 +81,7 @@ object Migrate {
   }
 
   private def createTemplate(className: String) = {
-  s"""package com.starman.migrations
+  s"""package starman.migrations
 
 import com.imageworks.migration._
 

@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common
+package starman.common
 
 import org.apache.log4j._
 import org.apache.log4j.Level._
@@ -10,7 +10,7 @@ import org.apache.log4j.Level._
 trait Log {
 
   /* choose logger based on our class name... this should be reworked later */
-  protected[this] val logger = Logger.getLogger(getClass.getName)  
+  protected[this] val logger = Logger.getLogger(getClass.getName)
 
   private def m(s: String)  = {
     val bt = 4
@@ -43,12 +43,12 @@ trait Log {
 }
 
 /**
-  * Trait that allows for timed execution 
+  * Trait that allows for timed execution
 */
 trait TimedExecution {
 
   /* given a block name, and a block
-     execute the block and return 
+     execute the block and return
      a log message and the results as a Tuple2
  */
   private def timedImpl[T](identifier: String, thunk: => T) = {
@@ -60,7 +60,7 @@ trait TimedExecution {
       case x if x > 1000 => s"${(x/1000.0)}s"
       case x if x < 1000 => s"${(x/1000.0)}ms"
 
-    } 
+    }
     val message:String = s"Executed ${identifier} in ${prettyTime}"
     (message, ret)
   }
@@ -73,7 +73,7 @@ trait TimedExecution {
     timedImpl("<anonymous>", thunk)
   }
 
-} 
+}
 
 /** Subclass of trait [[Log]] which does not use the [[m]] method */
 trait TraceLog extends Log {
@@ -93,7 +93,7 @@ trait TraceLog extends Log {
   }
 
   which will output:
-  XX.main @ 180: Executed calculated UAC in: 2419.310682 millisec 
+  XX.main @ 180: Executed calculated UAC in: 2419.310682 millisec
   while assigning the return of the calculations in the val X
 */
 object TraceLog extends TraceLog with TimedExecution {
@@ -116,9 +116,8 @@ object TraceLog extends TraceLog with TimedExecution {
     val methodName = Thread.currentThread().getStackTrace()(bt).getMethodName()
     val lineNumber = Thread.currentThread().getStackTrace()(bt).getLineNumber()
     message match {
-      case x: String => 
+      case x: String =>
         info(s"${className}.${methodName} @ ${lineNumber}: ${message}")
     }
   }
-
 }

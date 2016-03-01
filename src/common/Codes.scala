@@ -2,12 +2,13 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common
+package starman.common
 
 import scala.util.parsing.json.{JSONArray, JSONObject}
 /* model status codes */
 
 object Codes {
+
 
 
   sealed abstract class StatusCode(val code: Int, val name: String,
@@ -88,7 +89,7 @@ object Codes {
 
   case object MISSING_PARAMETER extends StatusCode(-607, "MISSING_PARAMETER", "A required parameter is missing")
 
-  import com.starman.macros.EnumerationMacros._
+  import starman.macros.EnumerationMacros._
   val statusCodes: Set[StatusCode] = sealedInstancesOf[StatusCode]
   val statusCodesAsJson: JSONArray = 
     JSONArray(statusCodes.toList.sortBy(_.code).map(_.asJson()))

@@ -2,13 +2,13 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common.social
+package starman.common.social
 
 import com.restfb.{DefaultFacebookClient, DefaultJsonMapper, Parameter, Version}
 import com.restfb.types._
-import com.starman.common.StarmanConfigFactory.config
-import com.starman.common._
-import com.starman.common.exceptions._
+import starman.common.StarmanConfigFactory.config
+import starman.common._
+import starman.common.exceptions._
 
 class StarmanFacebook(accessToken: String) {
 
@@ -20,27 +20,27 @@ class StarmanFacebook(accessToken: String) {
 
 
  private def userToMap(user: Option[User]) = user match {
-    case Some(u) => Map(
-      "id" -> u.getId(),
-      "firstName" -> u.getFirstName(),
-      "lastName" -> u.getLastName(),
-      "email" -> u.getEmail(),
-      "bio" -> u.getBio(),
-      "link" -> u.getLink(),
-      "about" -> u.getAbout(),
-      "birthday" -> u.getBirthday(),
-      "gender" -> u.getGender(),
-      "timezone" -> u.getTimezone(),
-      "location" -> {
-        if (u.getLocation() != null) {
-          u.getLocation().getName()
-        } else {
-          ""
-        }
+  case Some(u) => Map(
+    "id" -> u.getId(),
+    "firstName" -> u.getFirstName(),
+    "lastName" -> u.getLastName(),
+    "email" -> u.getEmail(),
+    "bio" -> u.getBio(),
+    "link" -> u.getLink(),
+    "about" -> u.getAbout(),
+    "birthday" -> u.getBirthday(),
+    "gender" -> u.getGender(),
+    "timezone" -> u.getTimezone(),
+    "location" -> {
+      if (u.getLocation() != null) {
+        u.getLocation().getName()
+      } else {
+        ""
       }
-    )
-    case _ => throw(new FacebookFailureException(message = "Unable to retrieve user information from Facebook"))
-  }
+    }
+  )
+  case _ => throw(new FacebookFailureException(message = "Unable to retrieve user information from Facebook"))
+}
 
   private def friendsToMap(friends: Option[List[NamedFacebookType]]) =  friends match {
     case Some(f) =>
@@ -110,5 +110,4 @@ object StarmanFacebook {
     val response = c.fetch
     response.split('=')(1)
   }
-
 }

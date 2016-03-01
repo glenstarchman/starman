@@ -1,2 +1,2 @@
-package com.starman.api.action
+package starman.api.action
 

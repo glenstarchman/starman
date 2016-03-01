@@ -2,16 +2,16 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data.models
+package starman.data.models
 
 import java.sql.Timestamp
 import org.json4s._
 import org.json4s.native.Serialization._
 import org.json4s.native.Serialization
 import com.restfb.types.Location 
-import com.starman.common.helpers.{Hasher, TokenGenerator}
-import com.starman.common.Types._
-import com.starman.common.social.StarmanFacebook
+import starman.common.helpers.{Hasher, TokenGenerator}
+import starman.common.Types._
+import starman.common.social.StarmanFacebook
 import StarmanSchema._
 
 

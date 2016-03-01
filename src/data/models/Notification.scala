@@ -1,4 +1,4 @@
-package com.starman.data.models
+package starman.data.models
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -9,9 +9,9 @@ import org.json4s.native.JsonMethods._
 import org.json4s.Extraction._
 import org.json4s.native.Serialization._
 import org.json4s.native.Serialization
-import com.starman.common.Types._
+import starman.common.Types._
 import StarmanSchema._
-import com.starman.common.PushNotification
+import starman.common.PushNotification
 
 case class Notification(override var id: Long=0, 
                 var userId: Long = 0,

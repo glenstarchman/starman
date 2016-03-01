@@ -1,4 +1,4 @@
-package com.starman.data.models
+package starman.data.models
 
 import java.sql.Timestamp
 import StarmanSchema._

@@ -2,23 +2,23 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.api.action
+package starman.api.action
 
 import xitrum.annotation.{GET, POST, First, Swagger}
 import xitrum.SkipCsrfCheck
-import com.starman.data.models._
-import com.starman.data.models.StarmanSchema._
-import com.starman.common.converters.ListConverter
-import com.starman.common.StarmanConfigFactory.hostConfig
-import com.starman.common.social.StarmanFacebook$
-import com.starman.common.exceptions._
-import com.starman.common.Codes.StatusCode
+import starman.data.models._
+import starman.data.models.StarmanSchema._
+import starman.common.converters.ListConverter
+import starman.common.StarmanConfigFactory.hostConfig
+import starman.common.social.StarmanFacebook$
+import starman.common.exceptions._
+import starman.common.Codes.StatusCode
 
 @Swagger(
   Swagger.Tags("User/Profile", "No Auth"),
   Swagger.Produces("application/json")
 )
-trait UserApi extends JsonAction 
+trait UserApi extends JsonAction
 
 @Swagger(
   Swagger.Tags("User/Profile", "Needs Authentication"),
@@ -49,7 +49,7 @@ class UserInfo extends UserApi with TrackableView {
             (R.OK, user)
           }
         }
-        case _ => throw(new NoUserException()) 
+        case _ => throw(new NoUserException())
       }
     })
   }
@@ -90,7 +90,7 @@ class UserAddDevice extends AuthorizedUserApi {
 )
 class UserActivity extends UserApi {
   def execute() {
-    futureExecute(() => { 
+    futureExecute(() => {
       val id = param("id") match {
         case "self" => {
           user match {
@@ -222,7 +222,7 @@ class UserCreateAccount extends UserApi {
       val u = User.createIdentity(
                 userName = userName,
                 password = password,
-                email = email 
+                email = email
       )
 
       u match {
@@ -235,7 +235,7 @@ class UserCreateAccount extends UserApi {
           )
           (R.OK, user.asLoginMap)
         }
-        case _ => throw(new CreateOrUpdateFailedException(message="Unable to create user")) 
+        case _ => throw(new CreateOrUpdateFailedException(message="Unable to create user"))
       }
     })
   }
@@ -253,7 +253,7 @@ class UserCreateAccount extends UserApi {
 )
 class UserLoginWithProvider extends UserApi {
   def execute() {
-    futureExecute(() => { 
+    futureExecute(() => {
       val provider = paramo("provider") match {
         case Some(x) => x
         case _ => ""
@@ -276,10 +276,10 @@ class UserLoginWithProvider extends UserApi {
               val sa = SocialAccount.create(provider, at)
               sa match {
                 case Some(s) => (R.USER_LOGIN, s.user.get.asLoginMap)
-                case _ => throw(new InvalidSocialCredentialsException()) 
+                case _ => throw(new InvalidSocialCredentialsException())
               }
             }
-            case _ => throw(new MissingSocialAccessTokenException()) 
+            case _ => throw(new MissingSocialAccessTokenException())
           }
         }
       }
@@ -302,7 +302,7 @@ class GeneratePasswordResetcode extends UserApi {
           //make sure they have an 'identity' account
           if (u.hasIdentityAccount) {
             //need to send an email here
-            (R.OK, Map("reset_code" -> User.generateResetCode(u.id))) 
+            (R.OK, Map("reset_code" -> User.generateResetCode(u.id)))
           } else {
             throw(new UserAccountMissingIdentityException())
           }
@@ -324,7 +324,7 @@ class GeneratePasswordResetcode extends UserApi {
 class ResetPassword extends UserApi {
   def execute() {
     futureExecute(() => {
-      val u = User.resetPassword(param[String]("code"), 
+      val u = User.resetPassword(param[String]("code"),
                                  param[String]("password"))
       (R.OK, u.asLoginMap)
     })
@@ -449,4 +449,3 @@ class UpdateUserProfile extends AuthorizedUserApi {
     })
   }
 }
-

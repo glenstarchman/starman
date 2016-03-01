@@ -2,14 +2,14 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common.helpers
+package starman.common.helpers
 
 import java.io.File
 import scala.concurrent.ExecutionContext.Implicits.global
 import awscala._
 import awscala.s3._
-import com.starman.common.StarmanConfigFactory.config
-import com.starman.common.HttpClient
+import starman.common.StarmanConfigFactory.config
+import starman.common.HttpClient
 
 object AmazonS3 {
 

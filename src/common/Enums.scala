@@ -1,4 +1,4 @@
-package com.starman.common
+package starman.common
 
 
 object Enums {

@@ -2,13 +2,13 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data
+package starman.data
 import com.jolbox.bonecp.BoneCP
 import com.jolbox.bonecp.{BoneCPConfig, BoneCPDataSource}
 import java.sql.Connection
 import java.sql.DriverManager
-import com.starman.common.{StarmanConfigFactory, Log}
-import com.starman.common.exceptions._
+import starman.common.{StarmanConfigFactory, Log}
+import starman.common.exceptions._
  
 object ConnectionPool extends Log {
 

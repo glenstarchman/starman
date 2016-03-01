@@ -1,8 +1,8 @@
-package com.starman.common.exceptions
+package starman.common.exceptions
 
 import io.netty.handler.codec.http.{HttpResponseStatus => H}
-import com.starman.common.{Codes => R}
-import com.starman.common.Codes.StatusCode
+import starman.common.{Codes => R}
+import starman.common.Codes.StatusCode
 
 
 class StarmanException(

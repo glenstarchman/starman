@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.api.action
+package starman.api.action
 
 import java.util.ArrayList
 import java.util.HashMap
@@ -22,16 +22,16 @@ import com.mindscapehq.raygun4java.core.RaygunClient
 import com.mindscapehq.raygun4java.core.messages.RaygunIdentifier
 import net.sf.uadetector.service._
 import net.sf.uadetector._
-import com.starman.common.{Codes, Log}
-import com.starman.common.Codes.StatusCode
-import com.starman.common.converters.{Mapper, Convertable}
-import com.starman.common.converters.ListConverter
-import com.starman.common.helpers.Text._
-import com.starman.common.BuildInfo
-import com.starman.data.models.{User, FriendlyId}
-import com.starman.common.StarmanConfigFactory
-import com.starman.common.Types._
-import com.starman.common.exceptions._
+import starman.common.{Codes, Log}
+import starman.common.Codes.StatusCode
+import starman.common.converters.{Mapper, Convertable}
+import starman.common.converters.ListConverter
+import starman.common.helpers.Text._
+import starman.common.BuildInfo
+import starman.data.models.{User, FriendlyId}
+import starman.common.StarmanConfigFactory
+import starman.common.Types._
+import starman.common.exceptions._
 
 trait BaseWebsocketAction extends WebSocketAction with Log {
 
@@ -62,12 +62,10 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
   lazy val cdnUri = config("aws.s3.base_url")
 
   /* does this request return JSON? */
-  lazy val isJson = {
-    if (this.isInstanceOf[JsonAction]) {
-      true
-    } else {
-      false
-    }
+  lazy val isJson = if (this.isInstanceOf[JsonAction]) {
+    true
+  } else {
+    false
   }
 
   val unauthorizedMessageJson = Map(
@@ -109,54 +107,43 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
     case _ => "Netscape"
   }
 
-  lazy val isBot = {
-    paramo("is_bot") match {
-      case Some(x) => true
-      case _ => {
-        val agent = ua_parser.parse(request.headers.get("User-Agent"))
-        val which = agent.getType()
-        which == "ROBOT"
-      }
+  lazy val isBot = paramo("is_bot") match {
+    case Some(x) => true
+    case _ => {
+      val agent = ua_parser.parse(request.headers.get("User-Agent"))
+      val which = agent.getType()
+      which == "ROBOT"
     }
   }
-
 
   lazy val isAdmin = user match {
     case Some(u) => u.admin
     case _ => false
   }
 
-
   lazy val userAsMap: MapAny = user match {
     case Some(u) => u.asMiniMap
     case _ => Map[String, Any]()
   }
 
-  lazy val userDataJs = {
-    val j: String = write(userAsMap)
-    s"""
+  lazy val userDataJs = s"""
 <script type="text/javascript">
-  var userData = ${j};
-</script>"""
-  }
-  
-  def jsonizeData(data: MapAny): String = write(data) 
+  var userData = ${write(userAsMap)};
+</script>
+"""
+
+  def jsonizeData(data: MapAny) = write(data) 
 
   /* this does not appear to work... investigate later */
   implicit def sc2map[T <: StatusCode](sc: T): MapAny = sc.asMap
 
-  def meta = {
-    val endTimestamp = System.currentTimeMillis
-    val time = endTimestamp - startTimestamp
-
-    Map( 
-      "start" -> startTimestamp,
-      "end" -> endTimestamp,
-      "executionTime" -> time,
-      "params" -> textParams.map(x => x._1 -> x._2.head),
-      "requestUser" -> userAsMap  
-    ) 
-  }
+  def meta = Map(
+    "start" -> startTimestamp,
+    "end" -> System.currentTimeMillis,
+    "executionTime" -> (startTimestamp - System.currentTimeMillis),
+    "params" -> textParams.map(x => x._1 -> x._2.head),
+    "requestUser" -> userAsMap  
+  ) 
 
   private[this] def buildPartialResult[T <: StatusCode](status: T) = Map(
     "meta" -> meta,
@@ -164,11 +151,11 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
   )
 
   /* result is already a map */
-  def buildResult[T <: StatusCode](status: T, result: MapAny) =  
+  def buildResult[T <: StatusCode](status: T, result: MapAny) =
     buildPartialResult(status) ++ Map("result" -> result)
 
   /* result is a case class */
-  def buildResult[T <: StatusCode, P <: Product](status: T, result: P) = 
+  def buildResult[T <: StatusCode, P <: Product](status: T, result: P) =
     buildPartialResult(status) ++ Map("result" -> {
       try {
         Mapper.ccToMap(result, true)
@@ -178,7 +165,7 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
     })
 
   /* result is a list of case classes */
-  def buildResult[T <: StatusCode, P <: Product](status: T, result: List[P]) = 
+  def buildResult[T <: StatusCode, P <: Product](status: T, result: List[P]) =
     buildPartialResult(status) ++ Map("result" -> ListConverter.asMap(result, false))
 
   def respondError[T <: StatusCode](status: T, message: String = "") = {
@@ -223,13 +210,12 @@ trait TrackableView extends BaseAction {
         }
       case _ => 0l
     }
-
   }
 }
 
 trait MustacheAction extends BaseAction {
-  
-  private[this] lazy val _engine = new ScalateEngine(templateDir, true, "mustache") 
+
+  private[this] lazy val _engine = new ScalateEngine(templateDir, true, "mustache")
   private[this] lazy val templateDir = s"${System.getProperty("user.dir")}/templates"
 
   private[this] def getTemplateNameFromClass[T <: Action](_class: T) = {
@@ -255,32 +241,30 @@ trait MustacheAction extends BaseAction {
     at("userData") = userDataJs
     respond(template, data)
   }
-
 }
 
 /* handles JSON and JSONP responses */
 trait JsonAction extends BaseAction with SkipCsrfCheck {
 
-  //def futureExecute(callback: () => (StatusCode, Any)) {
   def futureExecute(callback: () => Any) {
-    val future = Future { callback() } 
+    val future = Future { callback() }
     future onComplete {
       case Success((code: StatusCode, result:Any)) => {
         result match {
           case r: Map[_, _] => respond(code, r.asInstanceOf[MapAny])
           case r: List[_] => respond(code, r.asInstanceOf[List[MapAny]])
           case r: Convertable => respond(code, r.asMap)
+          //result is unknown so throw a ResponseException
           case _ => respondException(new ResponseException())
         }
       }
       case Success(f: io.netty.channel.ChannelFuture) =>  f
-      //don't know how to handle this response
       case Success(f: Any) => respondException(new ResponseException)
       case Failure(ex) => {println(ex); respondException(ex) }
     }
   }
 
-  private[this] def serializeException(ex: Exception) = Map(
+  private[this] def serializeException(ex: Throwable) = Map(
     "message" -> ex.getMessage,
     "traceback" -> ex.getStackTrace.map(e1 =>
       s"${e1.getFileName}:${e1.getLineNumber} in ${e1.getClassName}.${e1.getMethodName}"
@@ -288,7 +272,6 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
   )
 
   private[this] def respondException(e: Throwable) = {
-    println("respondException...")
     var responseCode = HttpResponseStatus.INTERNAL_SERVER_ERROR
     var starmanCode: StatusCode = R.GENERIC_ERROR
     var underlyingException: Option[Exception] = None
@@ -387,19 +370,16 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
     respond(starmanCode, message)
   }
 
-  def respond[T <: StatusCode](status: T, result: MapAny) = {
-    paramo("callback") match {
-      case Some(cb) => respondJsonP(buildResult(status, result), cb)
-      case _ => respondJson(buildResult(status, result))
-    }
+  def respond[T <: StatusCode](status: T, result: MapAny) = paramo("callback") match {
+    case Some(cb) => respondJsonP(buildResult(status, result), cb)
+    case _ => respondJson(buildResult(status, result))
   }
 
-  def respond[T <: StatusCode](status: T, result: List[MapAny]) = {
-    paramo("callback") match {
-      case Some(cb) => respondJsonP(buildResult(status, result), cb)
-      case _ => respondJson(buildResult(status, result))
-    }
+  def respond[T <: StatusCode](status: T, result: List[MapAny]) = paramo("callback") match {
+    case Some(cb) => respondJsonP(buildResult(status, result), cb)
+    case _ => respondJson(buildResult(status, result))
   }
+
 }
 
 /* version of BaseAction that requires authorization */
@@ -430,7 +410,7 @@ trait AdminOnlyAction extends BaseAction {
       if (isJson) {
         respondJson(buildResult(R.ADMIN_ONLY, adminOnlyMessageJson))
       } else {
-        respondText(adminOnlyMessage, "text/html", false) 
+        respondText(adminOnlyMessage, "text/html", false)
       }
     }
   })
@@ -455,13 +435,12 @@ trait BasicAuthAction extends BaseAction {
 object MustacheFileReader {
   private[this] lazy val templateDir = s"${System.getProperty("user.dir")}/templates"
   private[this] lazy val _engine = new ScalateEngine(templateDir, true, "mustache")
-  
-  private[this] def templateFile(templatePath: String) = templatePath match { 
+  private[this] def templateFile(templatePath: String) = templatePath match {
     case p if p.endsWith(".mustache") => p
     case _ => s"${templatePath}.mustache"
   }
 
   def render(template: String, action: Action, data: MapAny) = {
-    _engine.renderView(template, action, data) 
+    _engine.renderView(template, action, data)
   }
 }

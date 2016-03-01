@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common
+package starman.common
 
 import java.io.File
 import scala.util.Properties
@@ -72,12 +72,6 @@ object StarmanConfigFactory {
     "fb.api_key" -> conf.getString("fb.api_key"),
     "fb.api_secret" -> conf.getString("fb.api_secret"),
     "fb.app_id" -> conf.getString("fb.app_id")
-  )
-
-  lazy val ionicConfig = Map(
-    "ionic.app_id" -> conf.getString("ionic.app_id"),
-    "ionic.api_key" -> conf.getString("ionic.api_key"),
-    "ionic.secret_key" -> conf.getString("ionic.secret_key")
   )
 
   lazy val config = generalConfig ++ basicAuth ++

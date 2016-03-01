@@ -2,11 +2,11 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.api
+package starman.api
 
 import scala.util.Properties
 import xitrum.{Server, Config}
-import com.starman.common.StarmanConfigFactory
+import starman.common.StarmanConfigFactory
 
 object Boot extends App {
   override def main(args: Array[String]) {
@@ -23,7 +23,6 @@ object Boot extends App {
       }
     }
     start()
-   
   }
 
   def start() {

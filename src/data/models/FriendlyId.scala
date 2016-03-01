@@ -2,11 +2,11 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.data.models
+package starman.data.models
 
 import java.sql.Timestamp
 import StarmanSchema._
-import com.starman.common.helpers.Text._
+import starman.common.helpers.Text._
 
 case class FriendlyId(var id: Long = 0,
                       var model: String,

@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common.helpers
+package starman.common.helpers
 
 import java.security.SecureRandom
 import java.util.Base64

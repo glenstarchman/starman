@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common
+package starman.common
 
 import java.io.File
 import scala.io.{Source, Codec}
@@ -12,12 +12,12 @@ import scala.concurrent.duration._
 import com.joypeg.scamandrill.client.{MandrillAsyncClient, MandrillBlockingClient}
 import com.joypeg.scamandrill.utils._
 import com.joypeg.scamandrill.models._
-import com.starman.common.StarmanConfigFactory.config
-import com.starman.data.models._
-import com.starman.data.models.StarmanSchema._
-import com.starman.common.helpers.{FileReader, AmazonS3}
-import com.starman.common.helpers.Text.slugify
-import com.starman.common.exceptions._
+import starman.common.StarmanConfigFactory.config
+import starman.data.models._
+import starman.data.models.StarmanSchema._
+import starman.common.helpers.{FileReader, AmazonS3}
+import starman.common.helpers.Text.slugify
+import starman.common.exceptions._
 
 class Mailer {
   val cdn = config("aws.s3.base_url").toString

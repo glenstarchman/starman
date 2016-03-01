@@ -2,14 +2,14 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.common.helpers
+package starman.common.helpers
 
 import java.io.File
 import java.net.URLEncoder
 import scala.concurrent.duration._
-import com.starman.common.StarmanConfigFactory.config
-import com.starman.common.exceptions._
-import com.starman.common.HttpClient
+import starman.common.StarmanConfigFactory.config
+import starman.common.exceptions._
+import starman.common.HttpClient
 
 case class ImageDimensions(width: Int, height: Int, size: Int)
 case class ImageInfo(var path: String, dimensions: Option[ImageDimensions], imageType: String = "asset")

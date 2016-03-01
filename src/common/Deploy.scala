@@ -1,7 +1,7 @@
-package com.starman.common
+package starman.common
 
 import scala.util.Properties
-import com.starman.common.helpers.{AmazonS3, FileReader}
+import starman.common.helpers.{AmazonS3, FileReader}
 
 /* deployment helpers */
 

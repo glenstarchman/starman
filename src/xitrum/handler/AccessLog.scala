@@ -10,8 +10,8 @@ import xitrum.{Action, Config, Log}
 import xitrum.scope.request.RequestEnv
 import xitrum.sockjs.SockJsAction
 import xitrum.action.Net
-import com.starman.api.action.BaseAction
-import com.starman.data.models.User
+import starman.api.action.BaseAction
+import starman.data.models.User
 
 
 /* override Xitrum AccessLog to add in the request user */
@@ -41,10 +41,7 @@ object AccessLog {
     )
   }
 
-
   def logActionAccess(action: Action, beginTimestamp: Long, cacheSecs: Int, hit: Boolean, e: Throwable = null) {
-
-
     if (e == null) {
       Log.info(msgWithTime(action, beginTimestamp) + extraInfo(action, cacheSecs, hit))
     } else {

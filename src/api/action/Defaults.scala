@@ -2,7 +2,7 @@
  * Copyright (c) 2015. Starman, Inc All Rights Reserved
  */
 
-package com.starman.api.action
+package starman.api.action
 
 import xitrum.Action
 import xitrum.annotation.{Error404, Error500}
