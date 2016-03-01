@@ -1,9 +1,4 @@
-/*
- * Copyright (c) 2015. Didd, Inc All Rights Reserved
- * Author: Glen Starchman (glen@didd.com)
- */
-
-package com.didd.macros
+package starman.macros
 
 import scala.language.experimental.macros
 
