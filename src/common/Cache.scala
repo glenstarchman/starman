@@ -13,9 +13,8 @@ import memcached._
 
 /* NOT CURRENTLY USED */
 object StarmanCache {
-  lazy val config = StarmanConfigFactory.config
   implicit lazy val scalaCache = ScalaCache(
-    MemcachedCache(s"${config("memcached.host")}:11211"))
+    MemcachedCache(s"${StarmanConfig.get[Int]("memcached.host")}:11211"))
 
   def memoizeValue[T](ttl: Duration = 1 hour)(value: T)(implicit cacheKey: String) = {
     memoizeMethod(ttl)(() => value)(cacheKey)

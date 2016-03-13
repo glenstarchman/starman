@@ -4,15 +4,14 @@
 
 package starman.api
 
-import scala.util.Properties
 import xitrum.{Server, Config}
-import starman.common.StarmanConfigFactory
+import starman.common.StarmanConfig
 
 object Boot extends App {
   override def main(args: Array[String]) {
     val routes = Config.routes
     //remove any routes beginning with /xitrum if not in dev local
-    val mode = StarmanConfigFactory.env
+    val mode = StarmanConfig.env
 
     mode match {
       case "dev-local" => ()

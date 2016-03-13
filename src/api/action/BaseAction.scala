@@ -29,7 +29,7 @@ import starman.common.converters.ListConverter
 import starman.common.helpers.Text._
 import starman.common.BuildInfo
 import starman.data.models.{User, FriendlyId}
-import starman.common.StarmanConfigFactory
+import starman.common.StarmanConfig
 import starman.common.Types._
 import starman.common.exceptions._
 
@@ -43,8 +43,7 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
 
   lazy val buildInfo = BuildInfo.toMap
   lazy val infoMap = buildInfo.map{ case (k,v) => k -> v.toString }
-  lazy val config = StarmanConfigFactory.config
-  lazy val raygun = new RaygunClient(config("raygun.api_key").toString)
+  lazy val raygun = new RaygunClient(StarmanConfig.get[String]("raygun.api_key"))
   //return   codes... aliased to 'R' to minimize typing
   val startTimestamp = System.currentTimeMillis
   val R = Codes
@@ -52,14 +51,14 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
 
   lazy val ua_parser = UADetectorServiceFactory.getResourceModuleParser()
 
-  lazy val devMode  = StarmanConfigFactory.env match {
+  lazy val env = StarmanConfig.env
+  lazy val devMode  = env match {
     case "dev-local" => true
     case _ => false
   }
 
-  lazy val env = StarmanConfigFactory.env
 
-  lazy val cdnUri = config("aws.s3.base_url")
+  lazy val cdnUri = StarmanConfig.get[String]("aws.s3.base_url")
 
   /* does this request return JSON? */
   lazy val isJson = if (this.isInstanceOf[JsonAction]) {
@@ -82,7 +81,7 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
 
 
   /* return POST data as Json */
-  lazy val jsonPayload: Option[MapAny] = requestContentJson[MapAny] 
+  lazy val jsonPayload: Option[MapAny] = requestContentJson[MapAny]
 
   /* attempt to pull out a User from an access token */
   lazy val user  = {
@@ -97,7 +96,7 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
     }
 
     at match {
-      case Some(token) => User.get(token) 
+      case Some(token) => User.get(token)
       case _ => None
     }
   }
@@ -132,7 +131,7 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
 </script>
 """
 
-  def jsonizeData(data: MapAny) = write(data) 
+  def jsonizeData(data: MapAny) = write(data)
 
   /* this does not appear to work... investigate later */
   implicit def sc2map[T <: StatusCode](sc: T): MapAny = sc.asMap
@@ -142,8 +141,8 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
     "end" -> System.currentTimeMillis,
     "executionTime" -> (startTimestamp - System.currentTimeMillis),
     "params" -> textParams.map(x => x._1 -> x._2.head),
-    "requestUser" -> userAsMap  
-  ) 
+    "requestUser" -> userAsMap
+  )
 
   private[this] def buildPartialResult[T <: StatusCode](status: T) = Map(
     "meta" -> meta,
@@ -197,7 +196,7 @@ trait TrackableView extends BaseAction {
 
     //if this is a friendly id, look up its real value
     val id:Long = paramo("id") match {
-      case Some(x) => 
+      case Some(x) =>
         try {
           x.toString.toLong
         } catch {
@@ -282,7 +281,7 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
         responseCode = ex.httpStatus
         underlyingException = ex.underlyingException
       }
-      case ex: Exception => { 
+      case ex: Exception => {
         starmanCode = R.GENERIC_ERROR
         underlyingException = Option(ex)
       }
@@ -306,19 +305,19 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
 
     //in dev-local mode return the undelying exception, if available
     val message = underlyingException match {
-      case Some(exc) => if (StarmanConfigFactory.env == "dev-local") {
+      case Some(exc) => if (StarmanConfig.env == "dev-local") {
         Map(
-          "message" -> s"${userInfo} - ${e.getMessage}", 
+          "message" -> s"${userInfo} - ${e.getMessage}",
           "underlyingException" -> serializeException(exc)
         )
       } else {
         Map("message" -> e.getMessage)
       }
-      case _ => Map("message" -> e.getMessage) 
+      case _ => Map("message" -> e.getMessage)
     }
 
     //send to Raygun if we are not on a developer's box
-    if (StarmanConfigFactory.env != "dev-local") {
+    if (StarmanConfig.env != "dev-local") {
       Future {
         val identity = user match {
           case Some(u) => {
@@ -338,12 +337,12 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
         raygun.SetVersion(infoMap("version").toString)
         //set up the tags
         val tags = new ArrayList[Object]();
-        tags.add(StarmanConfigFactory.env)
+        tags.add(StarmanConfig.env)
         tags.add("scala")
         tags.add(buildInfo("gitHash").toString)
 
         //custom data
-        val stringMeta = meta.map{ case (k,v) => 
+        val stringMeta = meta.map{ case (k,v) =>
           k -> {
             v match {
               case x: List[_] => x.asInstanceOf[List[_]].asJava
@@ -361,11 +360,11 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
           }
           custom.put(k,value)
         }
-        raygun.Send(e, tags, custom) 
+        raygun.Send(e, tags, custom)
       }
     }
 
-    //set the underlying HTTP response code 
+    //set the underlying HTTP response code
     response.setStatus(responseCode)
     respond(starmanCode, message)
   }
@@ -392,7 +391,7 @@ trait AuthorizedAction extends BaseAction {
         if (isJson) {
           respondJson(buildResult(R.UNAUTHORIZED, unauthorizedMessageJson))
         } else {
-          respondText(unauthorizedMessage, "text/html", false) 
+          respondText(unauthorizedMessage, "text/html", false)
         }
       }
     }
@@ -427,7 +426,7 @@ trait AdminOnlyJsonAction extends JsonAction with AdminOnlyAction
 trait BasicAuthAction extends BaseAction {
   beforeFilter {
     basicAuth("Starman Restricted") { (username, password) =>
-      username == config("basic_auth.username") && password == config("basic_auth.password")
+      username == StarmanConfig.get[String]("basic_auth.username") && password == StarmanConfig.get[String]("basic_auth.password")
     }
   }
 }

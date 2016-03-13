@@ -6,7 +6,7 @@ package starman.common.social
 
 import com.restfb.{DefaultFacebookClient, DefaultJsonMapper, Parameter, Version}
 import com.restfb.types._
-import starman.common.StarmanConfigFactory.config
+import starman.common.StarmanConfig
 import starman.common._
 import starman.common.exceptions._
 
@@ -84,7 +84,7 @@ class StarmanFacebook(accessToken: String) {
 object StarmanFacebook {
 
   def createTestUser() = {
-    val app_id = config("fb.app_id").toString
+    val app_id = StarmanConfig.get[String]("fb.app_id")
     val accessToken = createAppAccessToken
     val uri = s"https://graph.facebook.com/${app_id}/accounts/test-users"
     val data = Map(
@@ -97,8 +97,8 @@ object StarmanFacebook {
   }
 
   def createAppAccessToken() = {
-    val app_id = config("fb.app_id").toString
-    val app_secret = config("fb.api_secret").toString
+    val app_id = StarmanConfig.get[String]("fb.app_id")
+    val app_secret = StarmanConfig.get[String]("fb.api_secret")
     val uri = s"https://graph.facebook.com/oauth/access_token"
     val data = Map(
       "client_id" -> Seq(app_id),

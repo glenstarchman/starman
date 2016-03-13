@@ -7,9 +7,8 @@ import starman.common.helpers.{AmazonS3, FileReader}
 
 object Deploy {
 
-  val config = StarmanConfigFactory.config
   lazy val env = Properties.envOrElse("Starman_MODE", "dev-local")
-  val bucket = config("aws.s3.asset_bucket").toString
+  val bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
 
   def main(args: Array[String]) {
     val action = args(0)

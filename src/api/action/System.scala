@@ -5,7 +5,7 @@ import xitrum.SkipCsrfCheck
 import starman.data.models._
 import starman.data.models.StarmanSchema._
 import starman.common.converters.ListConverter
-import starman.common.StarmanConfigFactory.{env, config}
+import starman.common.StarmanConfig
 import starman.common.social.StarmanFacebook
 import starman.common.exceptions._
 import starman.common.Codes.StatusCode
@@ -25,7 +25,7 @@ trait SystemApi extends JsonAction
 )
 trait AuthorizedSystemApi extends AuthorizedJsonAction
 
-
+/*
 @GET("api/system/configuration")
 @POST("api/system/configuration")
 @Swagger(
@@ -36,7 +36,7 @@ class SystemVariables extends SystemApi {
   def execute() {
     futureExecute(() => {
       val data = Map(
-        "app.mode" -> env, 
+        "app.mode" -> StarmanConfig.env,
         "fb.api_key" -> config("fb.api_key"),
         "fb.app_id" -> config("fb.app_id"),
         "cdn.uri" -> config("cdn.uri"),
@@ -52,3 +52,4 @@ class SystemVariables extends SystemApi {
     })
   }
 }
+*/

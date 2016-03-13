@@ -12,7 +12,6 @@ import scala.concurrent.duration._
 import com.joypeg.scamandrill.client.{MandrillAsyncClient, MandrillBlockingClient}
 import com.joypeg.scamandrill.utils._
 import com.joypeg.scamandrill.models._
-import starman.common.StarmanConfigFactory.config
 import starman.data.models._
 import starman.data.models.StarmanSchema._
 import starman.common.helpers.{FileReader, AmazonS3}
@@ -20,14 +19,14 @@ import starman.common.helpers.Text.slugify
 import starman.common.exceptions._
 
 class Mailer {
-  val cdn = config("aws.s3.base_url").toString
-  val bucket = config("aws.s3.asset_bucket").toString
-  lazy val env = Properties.envOrElse("MAIDEN_MODE", "dev-local")
+  val cdn = StarmanConfig.get[String]("aws.s3.base_url")
+  val bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
+  lazy val env = StarmanConfig.env
   val client = MandrillAsyncClient
   val blockingClient = MandrillBlockingClient
 
-  val defaultSenderEmail = config("mail.default.sender_email").toString
-  val defaultSenderName = config("mail.default.sender_name").toString
+  val defaultSenderEmail = StarmanConfig.get[String]("mail.default.sender_email")
+  val defaultSenderName = StarmanConfig.get[String]("mail.default.sender_name")
 
   val testMessage = new MSendMsg(
     html = "<h1>test</h1>",
@@ -51,7 +50,7 @@ class Mailer {
       merge_vars = data.map{ case (k,v) =>
         MTemplateCnt(name = k.toUpperCase, content = v.toString)
       }.toList
-    ) 
+    )
     Await.result(client.templateRender(t), 10 second)
   }
 
@@ -74,16 +73,16 @@ class Mailer {
       code = templateCode,
       text = "text",
       publish = true,
-      labels = List("email") 
+      labels = List("email")
     )
     //check if this template already exists
     val exists = blockingClient.templateInfo(templateInfo) match {
-      case Success(res) => true 
-      case Failure(ex) => false 
+      case Success(res) => true
+      case Failure(ex) => false
     }
 
     exists match {
-      case true => 
+      case true =>
         blockingClient.templateUpdate(template)
       case false =>
         blockingClient.templateAdd(template)
@@ -93,7 +92,7 @@ class Mailer {
                  FileReader.filesAtWithExtension(basePath, "gif") ++
                  FileReader.filesAtWithExtension(basePath, "jpg")
 
-    images.foreach(image => { 
+    images.foreach(image => {
       val s3Path = image.getPath.split("/").dropWhile(x => x != "email")
       AmazonS3.put(image, "images/" + s3Path.mkString("/"), bucket)
     })
@@ -101,7 +100,7 @@ class Mailer {
     client.shutdown
   }
 
-  private def buildMessage(to: String, title: String, 
+  private def buildMessage(to: String, title: String,
                            d: MTemplateRenderResponse,
                            fromEmail: String, fromName: String) = {
 
@@ -119,9 +118,9 @@ class Mailer {
     )
   }
 
-  def sendMail(to: String, title: String, template: String, 
-               data: Map[String, Any] = Map.empty, 
-               fromEmail: String = defaultSenderEmail, 
+  def sendMail(to: String, title: String, template: String,
+               data: Map[String, Any] = Map.empty,
+               fromEmail: String = defaultSenderEmail,
                fromName: String = defaultSenderName) = {
 
     val render = buildRender(template, data)

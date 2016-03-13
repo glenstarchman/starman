@@ -8,7 +8,8 @@ scalacOptions += "-P:xgettext:xitrum.I18n"
 autoCompilerPlugins := true
 
 val commonSettings = Seq(
-  organization := "starman",
+  organization := "com.maiden",
+  //name := "starman",
   version := "1.0.0",
   scalaVersion := "2.11.7",
   crossScalaVersions := Seq("2.11.7"),
@@ -22,28 +23,26 @@ val commonSettings = Seq(
     "org.json4s" %% "json4s-native" % "3.2.11"
   ),
   scalacOptions ++= Seq()
-) //++ XitrumPackage.copy("config", "public", "scripts", "templates") 
+) //++ XitrumPackage.copy("config", "public", "scripts", "templates")
 
 
 val baseBuildSettings = commonSettings ++ Seq(
-  //logLevel := Level.Debug,
-  //fork in (Test) := true,
 	buildInfoKeys ++= Seq[BuildInfoKey](
     name, version, scalaVersion, sbtVersion,
     "hostname" -> java.net.InetAddress.getLocalHost().getHostName(),
     "deployer" -> System.getProperty("user.name"),
-    "buildTimestamp" -> new java.util.Date(System.currentTimeMillis()),   
+    "buildTimestamp" -> new java.util.Date(System.currentTimeMillis()),
     "gitHash" -> new java.lang.Object(){
       override def toString(): String = {
-        try { 
+        try {
           val extracted = new java.io.InputStreamReader(
-            java.lang.Runtime.getRuntime().exec("git rev-parse HEAD").getInputStream())                         
+            java.lang.Runtime.getRuntime().exec("git rev-parse HEAD").getInputStream())
            (new java.io.BufferedReader(extracted)).readLine() match {
              case null => ""
              case x: String => x
            }
-        } catch {      
-          case t: Throwable => "get git hash failed"    
+        } catch {
+          case t: Throwable => "get git hash failed"
         }
       }
     }.toString()
@@ -53,7 +52,7 @@ val baseBuildSettings = commonSettings ++ Seq(
   buildInfoOptions += BuildInfoOption.ToMap,
   unmanagedClasspath in Compile <+= (baseDirectory) map { bd => Attributed.blank(bd / "config") },
   unmanagedClasspath in Runtime <+= (baseDirectory) map { bd => Attributed.blank(bd / "config") }
-) 
+)
 
 val templateSettings = Seq(
   scalateOverwrite := true,
@@ -73,7 +72,7 @@ lazy val migrate = inputKey[Unit]("Run migrations")
 lazy val deploy = inputKey[Unit]("Run deployment tasks")
 
 
-lazy val api = (project in (file(".")))
+lazy val starman = (project in (file(".")))
   .enablePlugins(BuildInfoPlugin)
   .settings(baseBuildSettings ++ scalateSettings ++ templateSettings ++ Seq(
     unmanagedSourceDirectories in Compile += baseDirectory.value / "src",
@@ -100,8 +99,6 @@ lazy val api = (project in (file(".")))
       "org.webjars" % "bootstrap" % "3.3.4",
       "com.roundeights" %% "hasher" % "1.0.0",
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      //"org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",
-      //"org.scala-lang.modules" %% "scala-xml" % "1.0.3",
       "com.typesafe" % "config" % "1.3.0",
       "log4j" % "log4j" % "1.2.14",
       "com.restfb" % "restfb" % "1.14.0",
@@ -122,9 +119,6 @@ lazy val api = (project in (file(".")))
       "net.sf.uadetector" % "uadetector-resources" % "2014.10",
       "com.vividsolutions" % "jts" % "1.13",
       "org.opentripplanner" % "otp" % "0.13.0",
-      //"com.cloudinary" % "cloudinary-core" % "1.2.2",
-      //"com.cloudinary" % "cloudinary-http44" % "1.2.2",
-      //"com.github.detro.ghostdriver" % "phantomjsdriver" % "1.1.0",
       "org.scalatest" % "scalatest_2.11" % "3.0.0-M14" % "test",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
     ),
@@ -139,6 +133,7 @@ lazy val api = (project in (file(".")))
 
 lazy val migrations = (project in (file("migrations")))
   .settings(commonSettings ++ Seq(
+    name := "migrations",
     unmanagedSourceDirectories in Compile += baseDirectory.value,
     libraryDependencies ++= Seq(
       "com.imageworks.scala-migrations" %% "scala-migrations" % "1.1.1"
@@ -147,11 +142,11 @@ lazy val migrations = (project in (file("migrations")))
 )
 
 /* this is needed solely for the Enum-like StatusCodes used by the API */
-lazy val macros  = (project in file("macros")) 
+lazy val macros  = (project in file("macros"))
   .settings(
     commonSettings ++ Seq(
+      name := "macros",
       unmanagedSourceDirectories in Compile += baseDirectory.value,
       libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)
     )
   )
-

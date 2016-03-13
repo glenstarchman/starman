@@ -8,29 +8,29 @@ import java.io.File
 import scala.concurrent.ExecutionContext.Implicits.global
 import awscala._
 import awscala.s3._
-import starman.common.StarmanConfigFactory.config
+import starman.common.StarmanConfig
 import starman.common.HttpClient
 
 object AmazonS3 {
 
-  lazy val baseUrl = config("aws.s3.base_url").toString
-  lazy val s3Creds = BasicCredentialsProvider(config("aws.access_key").toString,
-                                              config("aws.secret_key").toString)
+  lazy val baseUrl = StarmanConfig.get[String]("aws.s3.base_url")
+  lazy val s3Creds = BasicCredentialsProvider(StarmanConfig.get[String]("aws.access_key"),
+                                              StarmanConfig.get[String]("aws.secret_key"))
 
-  
+
   implicit val s3 = S3(s3Creds)
   implicit val region = Region("us-west-2")
 
   def put(path: String, bucketPath: String): Option[String] = {
     s3.at(region)
     //remove the parts of the local path that we don't need
-    val remotePath = path.replace(config("tmp.file_dir").toString, "").dropWhile(_ == '/')
+    val remotePath = path.replace(StarmanConfig.get[String]("tmp.file_dir"), "").dropWhile(_ == '/')
     s3.bucket(bucketPath) match {
       case Some(bucket) => {
-        s3.putAsPublicRead(bucket, remotePath, new File(path)) 
+        s3.putAsPublicRead(bucket, remotePath, new File(path))
         Option(remotePath)
       }
-      case _ => None  
+      case _ => None
     }
   }
 
@@ -62,7 +62,7 @@ object AmazonS3 {
       case Some(bucket) => {
         s3.putAsPublicRead(bucket, remote, local)
         Option(s"${baseUrl}/${remote}")
-      } 
+      }
       case x => { println(x); None }
     }
   }
@@ -81,10 +81,10 @@ object AmazonS3 {
     //first download the image
     val filename = remoteFileName match {
       case Some(f) => f
-      case _ => RandomStringGenerator.generate(64) + "." + ImageHandler.getFileExtension(_url) 
+      case _ => RandomStringGenerator.generate(64) + "." + ImageHandler.getFileExtension(_url)
     }
     val remotePath = s"${remote}/${filename}"
-    val tmpLocalPath = config("tmp.file_dir").toString + "/" + filename
+    val tmpLocalPath = s"${StarmanConfig.get[String]("tmp.file_dir")}/${filename}"
     val c = new HttpClient(_url)
     val f = c.fetchAsFile(tmpLocalPath)
     put(f, remotePath, bucketPath)

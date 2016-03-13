@@ -9,7 +9,6 @@ import xitrum.SkipCsrfCheck
 import starman.data.models._
 import starman.data.models.StarmanSchema._
 import starman.common.converters.ListConverter
-import starman.common.StarmanConfigFactory.hostConfig
 import starman.common.social.StarmanFacebook$
 import starman.common.exceptions._
 import starman.common.Codes.StatusCode

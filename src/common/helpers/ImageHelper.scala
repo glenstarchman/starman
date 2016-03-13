@@ -7,7 +7,7 @@ package starman.common.helpers
 import java.io.File
 import java.net.URLEncoder
 import scala.concurrent.duration._
-import starman.common.StarmanConfigFactory.config
+import starman.common.StarmanConfig
 import starman.common.exceptions._
 import starman.common.HttpClient
 
@@ -16,10 +16,10 @@ case class ImageInfo(var path: String, dimensions: Option[ImageDimensions], imag
 
 object ImageHelper {
 
-  private[this] val bucket = config("aws.s3.asset_bucket").toString
-  private[this] lazy val baseDir = config("tmp.file_dir").toString
-  private[this] lazy val s3Bucket = config("aws.s3.asset_bucket").toString
-  private[this] lazy val baseUrl = config("aws.s3.base_url").toString
+  private[this] val bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
+  private[this] lazy val baseDir = StarmanConfig.get[String]("tmp.file_dir")
+  private[this] lazy val s3Bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
+  private[this] lazy val baseUrl = StarmanConfig.get[String]("aws.s3.base_url")
 
   def getDimensions(url: String): Option[ImageDimensions] = {
     ImageHandler.getImageDimensions(url) match {

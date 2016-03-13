@@ -4,7 +4,7 @@ package starman.common.scraper
 import starman.common.exceptions._
 import starman.common.HttpClient
 import starman.common.helpers.Text
-import starman.common.StarmanConfigFactory.config
+import starman.common.StarmanConfig
 
 object Oembed {
   private final val PROVIDERS = Map(
@@ -36,7 +36,7 @@ object Oembed {
   private[this] def _cleanupOembedJson(provider: String, 
 											oembed: Map[String, Any]): Map[String, String] = {
 
-		val cdn = config("aws.s3.base_url")
+		val cdn = StarmanConfig.get[String]("aws.s3.base_url")
 
 		val width = oembed.get("width") match {
 			case Some(x) => if (x.toString.forall(_.isDigit)) x.toString.toInt else 600 

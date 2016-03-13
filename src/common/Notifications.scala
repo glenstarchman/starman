@@ -5,11 +5,9 @@ import org.json4s.native.Serialization
 import org.json4s.native.JsonMethods._
 import starman.common.helpers.Hasher
 
-object PushNotification { 
+object PushNotification {
 
   implicit val formats = DefaultFormats
-  lazy val config = StarmanConfigFactory.config
-  lazy val env = StarmanConfigFactory.env
 
   val baseUrl = "https://push.ionic.io/api/v1/push"
 
@@ -25,17 +23,17 @@ object PushNotification {
         ),
         "ios" -> Map(
           //need to fill this in
-          "title" -> title, 
+          "title" -> title,
           "icon" -> "icon.png",
           "badge" -> 1
         )
       )
     ))
 
-    val auth = Hasher.base64(s"${config("ionic.secret_key").toString}:")
+    val auth = Hasher.base64(s"${StarmanConfig.get[String]("ionic.secret_key")}")
     val headers = Map(
       "Authorization" -> s"Basic ${auth}",
-      "X-Ionic-Application-Id" -> config("ionic.app_id").toString,
+      "X-Ionic-Application-Id" -> StarmanConfig.get[String]("ionic.app_id"),
       "Content-Type" -> "application/json"
     )
     val h = new HttpClient(baseUrl, method="POST",  headers=headers, data=Map("json" -> Seq(payload)))
@@ -44,6 +42,3 @@ object PushNotification {
     h.fetchAsJson
   }
 }
-
-
-

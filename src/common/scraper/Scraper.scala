@@ -10,7 +10,7 @@ import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL.Parse._
 import org.jsoup.nodes.Document
 import starman.common.helpers.{ImageHandler, ImageHelper}
-import starman.common.StarmanConfigFactory.config
+import starman.common.StarmanConfig
 import starman.common.helpers.Text
 import starman.common.converters.Convertable
 

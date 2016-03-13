@@ -7,7 +7,7 @@ import com.jolbox.bonecp.BoneCP
 import com.jolbox.bonecp.{BoneCPConfig, BoneCPDataSource}
 import java.sql.Connection
 import java.sql.DriverManager
-import starman.common.{StarmanConfigFactory, Log}
+import starman.common.{StarmanConfig, Log}
 import starman.common.exceptions._
  
 object ConnectionPool extends Log {
@@ -28,16 +28,16 @@ object ConnectionPool extends Log {
     }
   }
 
-  lazy private[this] val config = StarmanConfigFactory.dbConfig
-  lazy val connectionString = s"jdbc:postgresql://${config("db.host")}/${config("db.database")}"
+  lazy private[this] val config = StarmanConfig("db")
+  lazy val connectionString = s"jdbc:postgresql://${config("db.host").toString}/${config("db.database").toString}"
 
   lazy val squerylDatasource = {
     val ds = new BoneCPDataSource();  // create a new datasource object
     try {
       //val bcp_config = new BoneCPConfig()
       ds.setJdbcUrl(connectionString)
-      ds.setUser(config("db.user"))
-      ds.setPassword(config("db.password"))
+      ds.setUser(config("db.user").toString)
+      ds.setPassword(config("db.password").toString)
       ds.setMinConnectionsPerPartition(5)
       ds.setMaxConnectionsPerPartition(200)
       ds.setPartitionCount(4)
@@ -56,7 +56,7 @@ object ConnectionPool extends Log {
 
   def rawConnection() = {
     try {
-      val url = s"${connectionString}?user=${config("db.user")}&password=${config("db.password")}"
+      val url = s"${connectionString}?user=${config("db.user").toString}&password=${config("db.password").toString}"
       DriverManager.getConnection(url)
     } catch {
       case e: Exception => {
@@ -68,7 +68,7 @@ object ConnectionPool extends Log {
 
   def rawConnection(config: Map[String, Any]) = {
     try {
-      val url = s"${connectionString}?user=${config("db.user")}&password=${config("db.password")}"
+      val url = s"${connectionString}?user=${config("db.user").toString}&password=${config("db.password").toString}"
       DriverManager.getConnection(url)
     } catch {
       case e: Exception => {
@@ -82,8 +82,8 @@ object ConnectionPool extends Log {
     try {
       val bcp_config = new BoneCPConfig()
       bcp_config.setJdbcUrl(connectionString)
-      bcp_config.setUser(config("db.user"))
-      bcp_config.setPassword(config("db.password"))
+      bcp_config.setUser(config("db.user").toString)
+      bcp_config.setPassword(config("db.password").toString)
       bcp_config.setMinConnectionsPerPartition(5)
       bcp_config.setMaxConnectionsPerPartition(100)
       bcp_config.setPartitionCount(4)

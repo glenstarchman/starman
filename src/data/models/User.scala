@@ -10,7 +10,7 @@ import starman.common.helpers.{Hasher, TokenGenerator}
 import starman.common.Types._
 import StarmanSchema._
 import starman.common.StarmanCache._
-import starman.common.StarmanConfigFactory.generalConfig
+import starman.common.StarmanConfig
 import starman.data.ConnectionPool
 import starman.common.exceptions._
 import starman.common.Codes._
@@ -188,7 +188,7 @@ object User extends CompanionTable[User] {
   }
 
   def hashPassword(password: String) = {
-    val salt = Hasher.sha256(generalConfig("password.hash"))
+    val salt = Hasher.sha256(StarmanConfig.get[String]("password.hash"))
     Hasher.sha512(salt, password)
   }  
 
@@ -416,10 +416,10 @@ object User extends CompanionTable[User] {
         u.accessToken = access
         u.secretKey = secret
         withTransaction {
-          Users.upsert(u) 
+          Users.upsert(u)
           Option(u)
         }
-      } 
+      }
       case _ => None
     }
   }
