@@ -186,7 +186,7 @@ lazy val migrate = inputKey[Unit]("Run migrations")
 lazy val deploy = inputKey[Unit]("Run deployment tasks")
 
 
-lazy val starman = (project in (file(".")))
+lazy val api = (project in (file(".")))
   .enablePlugins(BuildInfoPlugin)
   .settings(xitrumSettings ++ baseBuildSettings ++ scalateSettings ++ templateSettings ++ Seq(
     unmanagedSourceDirectories in Compile += baseDirectory.value / "src",

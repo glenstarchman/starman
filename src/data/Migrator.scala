@@ -17,7 +17,7 @@ object Migrate {
 
 
   //these are vars so they can be changed at runtime
-  lazy val  namespace  = StarmanConfig.get[String]("db.migration_namespace")
+  var  namespace  = StarmanConfig.get[String]("db.migration_namespace")
   var driver_class_name = StarmanConfig.get[String]("db.driver_class")
 
   lazy val migrator = {
