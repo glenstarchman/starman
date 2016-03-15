@@ -6,8 +6,8 @@ class Migrate_20150918083034_CreateTaggables extends Migration {
 
   val table = "taggable"; //put your table name here
 
-  def up() {
-    createTable(table) { t => 
+  def up(): Unit = {
+    createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.varchar("model", NotNull, Limit(50), CharacterSet(Unicode))
       t.bigint("model_id", NotNull)
@@ -24,7 +24,7 @@ class Migrate_20150918083034_CreateTaggables extends Migration {
 
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 }

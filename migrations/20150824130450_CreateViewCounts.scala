@@ -10,7 +10,7 @@ class Migrate_20150824130450_CreateViewCounts extends Migration {
 
   val table = "site_view"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.varchar("model", NotNull, Limit(128), CharacterSet(Unicode))
@@ -24,7 +24,7 @@ class Migrate_20150824130450_CreateViewCounts extends Migration {
 
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 }

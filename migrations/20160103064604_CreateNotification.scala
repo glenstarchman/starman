@@ -6,7 +6,7 @@ class Migrate_20160103064604_CreateNotification extends Migration {
 
   val table = "notification"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.bigint("user_id", NotNull)
@@ -18,7 +18,7 @@ class Migrate_20160103064604_CreateNotification extends Migration {
     addIndex(table, Array("user_id"), Name("notification_user_index"))
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 }

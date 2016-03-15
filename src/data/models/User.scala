@@ -27,7 +27,7 @@ object UserHelper {
 
     i match {
       case Some(i) => i.toString.toLong
-      case _ => throw(new NoUserException()) 
+      case _ => throw(new NoUserException())
     }
   }
 
@@ -42,21 +42,21 @@ object UserHelper {
         val optUser = FriendlyId.get("User", id.toString).asInstanceOf[Option[User]]
         optUser match {
           case Some(u) if u.deactivated == false => Option(u)
-          case _ => throw(new NoUserException()) 
+          case _ => throw(new NoUserException())
         }
-      }  
+      }
     }
   }
 
   def getAsMap(id: Any): Option[Map[String, Any]] = {
     get(id) match {
       case Some(user) => Option(user.asInstanceOf[User].asMap)
-      case _ => throw(new NoUserException()) 
+      case _ => throw(new NoUserException())
     }
   }
 }
 
-case class User(override var id: Long=0, 
+case class User(override var id: Long=0,
                 var userName: String="",
                 var password: String ="",
                 var email:String = "",
@@ -66,10 +66,10 @@ case class User(override var id: Long=0,
                 var `private`: Boolean = false,
                 var contactable: Boolean = true,
                 var deactivated: Boolean = false,
-                var lastLogin: Timestamp = null, 
+                var lastLogin: Timestamp = null,
                 var resetCode: String = null,
-                var createdAt: Timestamp=new Timestamp(System.currentTimeMillis), 
-                var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis)) 
+                var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
+                var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis))
   extends FriendlyIdable with BaseStarmanTableWithTimestamps {
 
 
@@ -134,11 +134,11 @@ case class User(override var id: Long=0,
         case _ => Map.empty
       }
     }
-  ) ++ extraMap 
+  ) ++ extraMap
 
 
 
-  def profile():Option[Profile] = fetchOne { 
+  def profile():Option[Profile] = fetchOne {
       from(Profiles)(p => where(p.userId === id) select(p))
   }
 
@@ -159,18 +159,18 @@ object User extends CompanionTable[User] {
   //SUPER SILLY WAY OF RETURNING THE USER'S PROJECTS INSTEAD OF THEIR PROFILE
   //this will soon revert to searching of profile
   def search(term: String) = {
-    val matcher = toTsQuery(term) 
-    val vec = s"to_tsvector(p.first_name || ' ' || p.last_name || ' ' || replace(u.user_name, '.', ' '))" 
+    val matcher = toTsQuery(term)
+    val vec = s"to_tsvector(p.first_name || ' ' || p.last_name || ' ' || replace(u.user_name, '.', ' '))"
     val query = s"""
     select u.id
     from profile p, users u
-    where u.id = p.user_id and 
-       ${vec} @@ ${matcher} 
+    where u.id = p.user_id and
+       ${vec} @@ ${matcher}
     order by ts_rank(${vec} , ${matcher})
     """
     val userIds = new ListBuffer[Long]
     rawQuery(query, (rs) => {
-      while (rs.next()) {
+      while (rs.next())  {
         userIds.append(rs.getLong(1))
       }
       if (userIds.size == 0) {
@@ -190,10 +190,10 @@ object User extends CompanionTable[User] {
   def hashPassword(password: String) = {
     val salt = Hasher.sha256(StarmanConfig.get[String]("password.hash"))
     Hasher.sha512(salt, password)
-  }  
+  }
 
-  def getByEmail(email: String) = fetchOne { 
-    from(Users)(u => where(u.email === email) 
+  def getByEmail(email: String) = fetchOne {
+    from(Users)(u => where(u.email === email)
     select(u))
   }
 
@@ -260,9 +260,9 @@ object User extends CompanionTable[User] {
   }
 
   def getByUserNameOrEmail(userName: String, email: String) = fetchOne {
-    from(Users, SocialAccounts)((u,sa) => 
+    from(Users, SocialAccounts)((u,sa) =>
     where(
-      (sa.accessToken === userName or u.email === email) 
+      (sa.accessToken === userName or u.email === email)
       and sa.provider === "identity"
     )
     select(u))
@@ -273,7 +273,7 @@ object User extends CompanionTable[User] {
     user match {
       case Some(_user) => {
         withTransaction {
-          update(Users)(u => 
+          update(Users)(u =>
           where(u.id === _user.id)
           set(u.contactable := false))
         }
@@ -284,8 +284,8 @@ object User extends CompanionTable[User] {
 
   def get(accessToken: String): Option[User] = {
     fetchOne {
-      from(Users)(u => 
-      where(u.accessToken === accessToken) 
+      from(Users)(u =>
+      where(u.accessToken === accessToken)
       select(u))
     }
   }
@@ -293,22 +293,22 @@ object User extends CompanionTable[User] {
   def get(userName: String, password: String) = {
     val hashedPass = hashPassword(password)
     fetchOne {
-      from(Users)(u => 
-      where(u.userName === userName and u.password === hashedPass) 
+      from(Users)(u =>
+      where(u.userName === userName and u.password === hashedPass)
       select(u))
-    }  
+    }
   }
 
   def getByUserName(userName: String) = {
     fetchOne {
-      from(Users)(u => 
-      where(u.userName === userName) 
+      from(Users)(u =>
+      where(u.userName === userName)
       select(u))
-    }  
+    }
   }
 
   override def get(id: Long) = fetchOne {
-    from(Users)(u => 
+    from(Users)(u =>
     where(u.id === id and u.deactivated === false)
     select(u))
   }
@@ -319,7 +319,7 @@ object User extends CompanionTable[User] {
       throw(new CreateOrUpdateFailedException(
               message = "Invalid password",
               code = INVALID_PASSWORD))
-    } else {  
+    } else {
       password
     }
   }
@@ -342,7 +342,7 @@ object User extends CompanionTable[User] {
 
   def validateUserName(userName: String) = {
     //put some checks here
-    if (userName.length < 3 || userName.length > 24 
+    if (userName.length < 3 || userName.length > 24
           || !onlyValidChars(userName)) {
       throw(new CreateOrUpdateFailedException(
               message = "Invalid user name",
@@ -357,9 +357,9 @@ object User extends CompanionTable[User] {
    val reserved = List("starman", "admin", "root", "create",
                        "update", "delete", "god")
 
-    val user = getByUserNameOrEmail(userName, email) 
+    val user = getByUserNameOrEmail(userName, email)
     user match {
-      case Some(u) => throw(new UserAlreadyExistsException())  
+      case Some(u) => throw(new UserAlreadyExistsException())
       case _ => {
         if (reserved.contains(userName)) {
           throw(new UserAlreadyExistsException())
@@ -401,7 +401,7 @@ object User extends CompanionTable[User] {
       Users.upsert(user)
       if (updateFriendlyId) {
         FriendlyId.generate("User", user.id, user.userName)
-      } 
+      }
     }
   }
 
@@ -428,12 +428,12 @@ object User extends CompanionTable[User] {
     println(password)
     val hashedPass = hashPassword(password)
     val u = fetchOne {
-      val s = from(Users, SocialAccounts)((u, sa) => 
-      where(sa.accessToken === userName and sa.secretKey === hashedPass and sa.userId === u.id) 
+      val s = from(Users, SocialAccounts)((u, sa) =>
+      where(sa.accessToken === userName and sa.secretKey === hashedPass and sa.userId === u.id)
       select(u))
       println(s)
       s
-    } 
+    }
     u match {
       case Some(user) => {
         //val access = TokenGenerator.generate
@@ -447,7 +447,7 @@ object User extends CompanionTable[User] {
         }
         u
       }
-      case _ => throw(new UnauthorizedException()) 
+      case _ => throw(new UnauthorizedException())
     }
   }
 
@@ -459,4 +459,3 @@ object User extends CompanionTable[User] {
   }
 
 }
-

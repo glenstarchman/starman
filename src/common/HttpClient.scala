@@ -16,11 +16,11 @@ import scalaz.stream.Process
 import org.http4s.Status.NotFound
 import org.http4s.Status.ResponseClass.Successful
 import org.json4s._
-import org.json4s.native.JsonMethods._
+import org.json4s.jackson.JsonMethods._
 import starman.common.exceptions._
 import starman.common.helpers.FileWriter
 
-class HttpClient(url: String, timeout: Duration = 30 second, method: String = "GET", data: Map[String, Seq[String]] = Map.empty, headers: Map[String, String] = Map.empty ) {
+class HttpClient(url: String, timeout: Duration = 30 second, method: String = "GET", data: Map[String, Seq[String]] = Map.empty, headers: Map[String, String] = Map.empty ){
 
   implicit val formats = DefaultFormats
   implicit def bv2str(bv: ByteVector): String = bv.toIterable.map(_.toChar).mkString("")
@@ -37,8 +37,8 @@ class HttpClient(url: String, timeout: Duration = 30 second, method: String = "G
       //special case where we are posting pure json
       ByteVector.encodeUtf8(data("json")(0))
     } else {
-      ByteVector.encodeUtf8(params) 
-    } 
+      ByteVector.encodeUtf8(params)
+    }
 
     val p = Process.emit(
       bv match {
@@ -60,7 +60,7 @@ class HttpClient(url: String, timeout: Duration = 30 second, method: String = "G
   }
   val client = baseClient(buildRequest)
 
-  def getUri(s: String): Uri = 
+  def getUri(s: String): Uri =
     Uri.fromString(s).getOrElse(throw(new InvalidUrlException(message=s)))
 
 
@@ -91,14 +91,14 @@ class HttpClient(url: String, timeout: Duration = 30 second, method: String = "G
     val res = client.flatMap {
       case Successful(resp) => resp.as[ByteVector]
       case NotFound(resp) => throw(new UrlNotFoundException(message=url))
-      case resp => throw(new ExternalResponseException(message = resp.toString)) 
+      case resp => throw(new ExternalResponseException(message = resp.toString))
     }
 
     try {
       res.timed(timeout).run
     } catch {
       case e: TimeoutException  => throw(new ExternalResponseTimeoutException(message = url))
-      case e: Exception => 
+      case e: Exception =>
         throw(new ExternalResponseException(message = url, exc=Option(e)))
     }
   }
@@ -109,7 +109,7 @@ class HttpClient(url: String, timeout: Duration = 30 second, method: String = "G
   def fetch[T](callback : (ByteVector) => T) = callback(fetchRaw)
   def fetchAsMap() = fetch(asMap)
   def fetchAsJson() = fetch(asJson)
-  /* fetch a resource from a URL and save as a file 
+  /* fetch a resource from a URL and save as a file
   works with binary and text resources */
   def fetchAsFile(fileName: String) = {
     val r = fetchRaw.toIterable.toArray

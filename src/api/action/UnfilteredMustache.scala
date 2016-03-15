@@ -27,7 +27,7 @@ ${s}
 </script>
 """
 
-  def execute() {
+  def execute(): Unit = {
     if (isBot) {
       //forwardTo[StaticHome]()
     } else {

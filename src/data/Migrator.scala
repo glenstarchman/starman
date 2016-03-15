@@ -11,16 +11,19 @@ import org.joda.time.format.ISODateTimeFormat
 import com.imageworks.migration._
 import starman.common.helpers.Text._
 import starman.common.StarmanCache
+import starman.common.StarmanConfig
 
-object Migrate { 
+object Migrate {
 
-  val namespace  = "starman.migrations"
+
+  //these are vars so they can be changed at runtime
+  lazy val  namespace  = StarmanConfig.get[String]("db.migration_namespace")
+  var driver_class_name = StarmanConfig.get[String]("db.driver_class")
 
   lazy val migrator = {
-    val driver_class_name = "org.postgresql.Driver"
     val vendor = Vendor.forDriver(driver_class_name)
     val migration_adapter = DatabaseAdapter.forVendor(vendor, None)
-    val data_source = ConnectionPool.squerylDatasource.get 
+    val data_source = ConnectionPool.squerylDatasource.get
     new Migrator(data_source, migration_adapter)
   }
 
@@ -30,26 +33,26 @@ object Migrate {
       case Array("down") => down
       case Array("rollback", num) => rollback(num.toInt)
       case Array("generate", name) => generate(name)
-      case Array("rebuild") => rebuild 
+      case Array("rebuild") => rebuild
       case _ => ()
   }
 
-  def up() {
+  def up(): Unit = {
     migrator.migrate(InstallAllMigrations, namespace, false)
   }
-  def clean() {
+  def clean(): Unit = {
     down()
   }
 
-  def down() {
-    migrator.migrate(RemoveAllMigrations, namespace, false) 
+  def down(): Unit = {
+    migrator.migrate(RemoveAllMigrations, namespace, false)
   }
 
-  def rollback(version: Int) {
-    migrator.migrate(MigrateToVersion(version), namespace, false) 
+  def rollback(version: Int): Unit = {
+    migrator.migrate(MigrateToVersion(version), namespace, false)
   }
 
-  def rebuild() {
+  def rebuild(): Unit = {
     down()
     up()
   }
@@ -66,7 +69,7 @@ object Migrate {
     }
   }
 
-  def generate(name: String) {
+  def generate(name: String): Unit = {
     val fmt = ISODateTimeFormat.dateHourMinuteSecond()
     val date = fmt.print(System.currentTimeMillis)
                 .replace(":", "")
@@ -89,11 +92,11 @@ class ${className} extends Migration {
 
   val table = ""; //put your table name here
 
-  def up() {
+  def up(): Unit = {
 
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

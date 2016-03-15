@@ -5,13 +5,13 @@ import StarmanSchema._
 
 case class Taggable(
   var id: Long = 0,
-  var model: String, 
+  var model: String,
   var modelId: Long,
-  var action: String, 
+  var action: String,
   var actorId: Long,
   var extra: String = "",
-  var createdAt: Timestamp=new Timestamp(System.currentTimeMillis), 
-  var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis) 
+  var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
+  var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis)
 ) extends BaseStarmanTableWithTimestamps {
 
   override def asMap() = {
@@ -19,7 +19,7 @@ case class Taggable(
       "action" -> action,
       "added" -> createdAt,
       "extra" -> extra
-    ) 
+    )
   }
 }
 
@@ -32,37 +32,50 @@ object Taggable extends CompanionTable[Taggable] {
     counts.keys.map( k => {
       val objs = forObjectWithPaging(model, id, k, 0, 5)
       k + "s" -> Map(
-        "total_count" -> counts(k), 
+        "total_count" -> counts(k),
         "count" -> objs.size,
         "objects" -> objs.map{ case(t, u) => t.asMap ++ Map("actor" -> u.asMiniMap) }
-      ) 
+      )
     }).toList.toMap
   }
 
-  def getObject(c: Taggable) = { 
-    val m = lookup(c.model) 
+  def getObject(c: Taggable) = {
+    val m = lookup(c.model)
     fetch {
       from(m)(d => where(d.id === c.id) select(d))
     }
   }
 
   def forObject(model: String, id: Long, action: String) = fetch {
-    from(Taggables)(t => 
-    where(t.model === model and t.modelId === id and t.action === action) 
+    from(Taggables)(t =>
+      where(
+        (t.model === model) and
+        (t.modelId === id) and
+        (t.action === action)
+      )
     select(t)
     orderBy(t.updatedAt))
   }
 
   def forObjectWithPaging(model: String, id: Long, action: String, offset: Int = 0,  limit: Int = 5) = fetch {
-    from(Taggables, Users)((t, u) => 
-    where(t.model === model and t.modelId === id and t.action === action and t.actorId === u.id) 
+    from(Taggables, Users)((t, u) =>
+    where(
+      (t.model === model) and
+      (t.modelId === id) and
+      (t.action === action) and
+      (t.actorId === u.id)
+    )
     select(t, u)
     orderBy(t.updatedAt)).page(offset, limit)
   }
 
   def countForObject(model: String, id: Long, action: String) = fetchOne {
-    from(Taggables)(t => 
-    where(t.model === model and t.modelId === id and t.action === action) 
+    from(Taggables)(t =>
+    where(
+      (t.model === model) and
+      (t.modelId === id) and
+      (t.action === action)
+    )
     groupBy(t.actorId)
     compute(count(t.actorId)))
   } headOption match {
@@ -70,20 +83,29 @@ object Taggable extends CompanionTable[Taggable] {
     case _ => 0
   }
 
-  def countAllForObject(model: String, id: Long) = { 
+  def countAllForObject(model: String, id: Long) = {
     val r = fetch {
-      from(Taggables)(t => 
-      where(t.model === model and t.modelId === id) 
+      from(Taggables)(t =>
+      where(
+        (t.model === model) and
+        (t.modelId === id)
+      )
       groupBy(t.action)
       compute(count()))
     }
-    r.map(x => x.key -> x.measures) 
+    r.map(x => x.key -> x.measures)
   }
 
   def get(model: String, modelId: Long, actor: Long, action: String, extra: String = "") = {
     val e = fetchOne {
-      from(Taggables)(t => 
-      where(t.model === model and t.modelId === modelId and t.actorId === actor and t.action === action and t.extra === extra) 
+      from(Taggables)(t =>
+      where(
+        (t.model === model) and
+        (t.modelId === modelId) and
+        (t.actorId === actor) and
+        (t.action === action) and
+        (t.extra === extra)
+      )
       select(t))
     }
 
@@ -102,7 +124,7 @@ object Taggable extends CompanionTable[Taggable] {
 
   def create(model: String, modelId: Long, actorId: Long, action: String, extra: String = "") =  {
     if (!exists(model, modelId, actorId, action, extra)) {
-      val t = Taggable(model = model, modelId = modelId, actorId = actorId, action = action, extra = extra) 
+      val t = Taggable(model = model, modelId = modelId, actorId = actorId, action = action, extra = extra)
       withTransaction {
         Taggables.upsert(t)
         Option(t)
@@ -114,15 +136,14 @@ object Taggable extends CompanionTable[Taggable] {
 
   def remove(model: String, modelId: Long, actorId: Long, action: String) = {
     withTransaction {
-      Taggables.deleteWhere(t => 
-        t.model === model and t.modelId === modelId and t.actorId === actorId and t.action === action
+      Taggables.deleteWhere(t =>
+        (t.model === model) and
+        (t.modelId === modelId) and
+        (t.actorId === actorId) and
+        (t.action === action)
       )
     }
     Option(true)
-
   }
 
 }
-
-
-

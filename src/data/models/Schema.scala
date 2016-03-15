@@ -18,8 +18,8 @@ import org.squeryl.dsl._
 import org.squeryl.dsl.ast._
 import org.squeryl._
 import org.json4s._
-import org.json4s.native.Serialization
-import org.json4s.native.Serialization._
+import org.json4s.jackson.Serialization
+import org.json4s.jackson.Serialization._
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
 import java.util.Date
@@ -29,14 +29,14 @@ import starman.common.StarmanCache._
 import starman.data.ConnectionPool
 import starman.common.helpers.Text._
 import starman.common.helpers.{FileReader, FileWriter}
-import starman.common.Log
+import starman.common.{Log, StarmanConfig}
 
-object SquerylEntrypoint extends PrimitiveTypeMode 
+object SquerylEntrypoint extends PrimitiveTypeMode
 
 /* custom version of PostgreSqlAdapter that supports more standardized naming of sequences */
 class StarmanPostgreSqlAdapter extends PostgreSqlAdapter {
 
-  private[this] def realSequenceName(table: String, column: String) = 
+  private[this] def realSequenceName(table: String, column: String) =
     underscore(s"${table}_${column}_seq")
 
   override def writeInsert[T](o: T, t: Table[T], sw: StatementWriter):Unit = {
@@ -83,7 +83,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
       getTables
     }
     tables.foreach(table => withTransaction {
-      table.deleteWhere(r => 1 === 1) 
+      table.deleteWhere(r => 1 === 1)
     })
   }
 
@@ -109,7 +109,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
         case 0L =>  withTransaction { t.insert(obj) }
         case _ => {
           withTransaction { t.update(obj) }
-          obj 
+          obj
         }
       }
       savedObj
@@ -117,7 +117,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
 
     def lastUpdate[T](id: Long)(implicit m: Manifest[T]): Timestamp = {
       fetchOne {
-        from(t)(r => 
+        from(t)(r =>
         where( r.id === id)
         select(r.updatedAt))
       } match {
@@ -130,7 +130,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
   def logSql(s: String) = info(s)
 
   def createSession() = {
-    Class.forName("org.postgresql.Driver");
+    Class.forName(StarmanConfig.get[String]("db.driver_class"));
     val session = SessionFactory.concreteFactory = Some(()=> {
       val session = Session.create(
         ConnectionPool.getConnection.get,
@@ -182,7 +182,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
     }
   }
 
-  def dumpTableJson(fileName: String) = 
+  def dumpTableJson(fileName: String) =
     FileWriter.write(tablesToJson, fileName)
 
   def restoreFromJson(fileName: String) = {
@@ -201,7 +201,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
       statement.close()
       connection.close()
     } catch {
-      case e: Exception => println(e) 
+      case e: Exception => println(e)
     }
   }
 
@@ -214,7 +214,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
       connection.close()
       rs
     } catch {
-      case e: Exception => println(e) 
+      case e: Exception => println(e)
     }
   }
 
@@ -234,25 +234,25 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
   def fetch[A](a: => Query[A]): List[A] = withTransaction { a.toList }
 
   /* futures enabled query wrappers */
-  def futureFetch[A](a: => Query[A]): Future[List[A]] = withTransactionFuture { a.toList } 
+  def futureFetch[A](a: => Query[A]): Future[List[A]] = withTransactionFuture { a.toList }
 
-  def futureFetchOne[A](a: => Query[A]): Future[Option[A]] = withTransactionFuture { a.toList.headOption} 
+  def futureFetchOne[A](a: => Query[A]): Future[Option[A]] = withTransactionFuture { a.toList.headOption}
 
   /* overrides to make table and column names sane */
-  private[this] def columnize(s: String) = underscore(s) match { 
+  private[this] def columnize(s: String) = underscore(s) match {
     case "user" => "users"
     case "setting" => "settings"
-    case colName: String  =>  colName 
+    case colName: String  =>  colName
   }
 
-  override def tableNameFromClass(c: Class[_]) = 
-    columnize(super.tableNameFromClass(c)).toLowerCase 
+  override def tableNameFromClass(c: Class[_]) =
+    columnize(super.tableNameFromClass(c)).toLowerCase
 
-  override def tableNameFromClassName(tableName: String) = 
-    columnize(super.tableNameFromClassName(tableName)).toLowerCase 
+  override def tableNameFromClassName(tableName: String) =
+    columnize(super.tableNameFromClassName(tableName)).toLowerCase
 
-  override def columnNameFromPropertyName(propertyName: String) = 
-    columnize(super.columnNameFromPropertyName(propertyName)).toLowerCase 
+  override def columnNameFromPropertyName(propertyName: String) =
+    columnize(super.columnNameFromPropertyName(propertyName)).toLowerCase
 
   /* Query-able table defs */
   val ActivityStreams = table[ActivityStream]

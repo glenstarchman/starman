@@ -22,9 +22,9 @@ class Scalate extends ScalateEngine(
   Config.xitrum.config.getString("template.\"" + classOf[Scalate].getName + "\".defaultType")
 ) {
   // Scalate takes several seconds to initialize => Warm it up here
-  override def start() {
+  override def start(): Unit = {
     val dummyAction = new Action {
-      def execute() {}
+      def execute(): Unit = {}
     }
 
     renderJadeString("")(dummyAction)
@@ -86,9 +86,9 @@ class ScalateEngine(
   //----------------------------------------------------------------------------
   // TemplateEngine interface methods (see also ScalateEngineRenderInterface)
 
-  def start() {}
+  def start(): Unit = {}
 
-  def stop() {
+  def stop(): Unit = {
     fileEngine.shutdown()
     stringEngine.shutdown()
   }
@@ -144,7 +144,7 @@ class ScalateEngine(
     (context, buffer, out)
   }
 
-  protected def setFormats(context: RenderContext, currentAction: Action, options: Map[String, Any]) {
+  protected def setFormats(context: RenderContext, currentAction: Action, options: Map[String, Any]): Unit = {
     val lo = Locale.forLanguageTag(currentAction.language)
     val df = dateFormat(options).getOrElse(DateFormat.getDateInstance(DateFormat.DEFAULT, lo))
     val nf = numberFormat(options).getOrElse(NumberFormat.getInstance(lo))

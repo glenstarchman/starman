@@ -6,7 +6,7 @@ class Migrate_20160102075042_CreateSettings extends Migration {
 
   val table = "settings"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.bigint("user_id", NotNull)
@@ -21,7 +21,7 @@ class Migrate_20160102075042_CreateSettings extends Migration {
 
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

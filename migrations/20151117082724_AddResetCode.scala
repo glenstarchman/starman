@@ -6,11 +6,11 @@ class Migrate_20151117082724_AddResetCode extends Migration {
 
   val table = "users"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addColumn(table, "reset_code", VarcharType, Limit(128), Nullable)
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

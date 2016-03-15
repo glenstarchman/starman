@@ -6,11 +6,11 @@ class Migrate_20150922114251_AddContactableToUser extends Migration {
 
   val table = "users"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addColumn(table, "contactable", BooleanType, NotNull, Default("true"))
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

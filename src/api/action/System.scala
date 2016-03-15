@@ -33,7 +33,7 @@ trait AuthorizedSystemApi extends AuthorizedJsonAction
   Swagger.Summary("get a list of all system variables")
 )
 class SystemVariables extends SystemApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val data = Map(
         "app.mode" -> StarmanConfig.env,

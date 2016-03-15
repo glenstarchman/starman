@@ -1,8 +1,8 @@
 package starman.common
 
 import org.json4s._
-import org.json4s.native.Serialization
-import org.json4s.native.JsonMethods._
+import org.json4s.jackson.Serialization
+import org.json4s.jackson.JsonMethods._
 import starman.common.helpers.Hasher
 
 object PushNotification {

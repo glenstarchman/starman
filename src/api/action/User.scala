@@ -36,7 +36,7 @@ trait AuthorizedUserApi extends AuthorizedJsonAction
   Swagger.IntPath("id", "the user id to retrieve")
 )
 class UserInfo extends UserApi with TrackableView {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val id = param("id")
       val userData = UserHelper.getAsMap(id)
@@ -64,7 +64,7 @@ class UserInfo extends UserApi with TrackableView {
   Swagger.IntPath("uuid", "The device UUID")
 )
 class UserAddDevice extends AuthorizedUserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val userId = user.get.id
       val token = param[String]("token")
@@ -88,7 +88,7 @@ class UserAddDevice extends AuthorizedUserApi {
   Swagger.OptIntQuery("end", "Timestamp to end on")
 )
 class UserActivity extends UserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val id = param("id") match {
         case "self" => {
@@ -132,7 +132,7 @@ class UserActivity extends UserApi {
 @GET("user/:id")
 @GET("profile/:id")
 class UserProfileAction extends BaseAction {
-  def execute() {
+  def execute(): Unit = {
     if (isBot) {
       //forwardTo[StaticProfile]()
     } else {
@@ -149,7 +149,7 @@ class UserProfileAction extends BaseAction {
   Swagger.StringQuery("accessToken", "The access token to check")
 )
 class ValidateAccessToken extends UserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       paramo("accessToken") match {
         case Some(at) => {
@@ -172,7 +172,7 @@ class ValidateAccessToken extends UserApi {
   Swagger.Summary("Get a user's settings")
 )
 class UserSettings extends AuthorizedUserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val settings = Setting.getForUser(user.get.id).map(_.asMap)
       (R.OK, settings)
@@ -189,7 +189,7 @@ class UserSettings extends AuthorizedUserApi {
   Swagger.StringPath("value", "The setting's value")
 )
 class UserUpdateSettings extends AuthorizedUserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val s = Setting.createOrUpdate(user.get.id, param[String]("name"), param[String]("value"))
       (R.OK, s.asMap)
@@ -209,7 +209,7 @@ class UserUpdateSettings extends AuthorizedUserApi {
   Swagger.StringQuery("lastName", "last name")
 )
 class UserCreateAccount extends UserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       //val userName = User.validateUserName(param[String]("username"))
       val firstName = param[String]("firstName")
@@ -251,7 +251,7 @@ class UserCreateAccount extends UserApi {
   Swagger.OptStringQuery("password", "The password for the user (identity only)")
 )
 class UserLoginWithProvider extends UserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val provider = paramo("provider") match {
         case Some(x) => x
@@ -294,7 +294,7 @@ class UserLoginWithProvider extends UserApi {
     Swagger.StringQuery("email", "The email address for the user")
 )
 class GeneratePasswordResetcode extends UserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       User.getByEmail(param[String]("email")) match {
         case Some(u) => {
@@ -321,7 +321,7 @@ class GeneratePasswordResetcode extends UserApi {
     Swagger.StringQuery("password", "The new password")
 )
 class ResetPassword extends UserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       val u = User.resetPassword(param[String]("code"),
                                  param[String]("password"))
@@ -350,7 +350,7 @@ class ResetPassword extends UserApi {
   Swagger.OptStringQuery("password", "The user's new password")
 )
 class UpdateUserProfile extends AuthorizedUserApi {
-  def execute() {
+  def execute(): Unit = {
     futureExecute(() => {
       user match {
         case Some(u) => {

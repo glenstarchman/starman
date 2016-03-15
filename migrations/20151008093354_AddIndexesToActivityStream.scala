@@ -6,13 +6,13 @@ class Migrate_20151008093354_AddIndexesToActivityStream extends Migration {
 
   val table = "activity_stream"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addIndex(table, "model", Name("as_model_index"))
 
 
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

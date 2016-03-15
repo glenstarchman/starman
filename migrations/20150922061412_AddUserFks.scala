@@ -6,7 +6,7 @@ class Migrate_20150922061412_AddUserFks extends Migration {
 
   val table = ""; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addForeignKey(on("social_account" -> "user_id"),
                   references("users" -> "id"),
                   OnDelete(Cascade),
@@ -20,7 +20,7 @@ class Migrate_20150922061412_AddUserFks extends Migration {
 
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

@@ -23,7 +23,7 @@ object ImageHelper {
 
   def getDimensions(url: String): Option[ImageDimensions] = {
     ImageHandler.getImageDimensions(url) match {
-      case Array(width,height, size) => Option(ImageDimensions(width, height, size)) 
+      case Array(width,height, size) => Option(ImageDimensions(width, height, size))
       case _ => None
     }
   }
@@ -52,7 +52,7 @@ object ImageHelper {
     }
   }
 
-  def saveRemoteImages(urls: List[String], prefix: String, 
+  def saveRemoteImages(urls: List[String], prefix: String,
               imageType: String = "asset", bucketType: String) = {
     urls.par.map(url => {
       val p = try {
@@ -66,8 +66,8 @@ object ImageHelper {
           val i = ImageInfo((p.getAbsolutePath), Option(ImageDimensions(d.width, d.height, d.size)), imageType)
           val remotePath = AmazonS3.putWithDeleteLocal(cleanUrl(p.getAbsolutePath), s"${bucket}/${bucketType}")
           i.path = remotePath match {
-            case Some(p) => s"${baseUrl}/${bucketType}/${p}" 
-            case _ => "" 
+            case Some(p) => s"${baseUrl}/${bucketType}/${p}"
+            case _ => ""
           }
           Option(i)
         }

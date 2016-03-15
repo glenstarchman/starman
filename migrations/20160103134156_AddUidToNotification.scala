@@ -6,12 +6,12 @@ class Migrate_20160103134156_AddUidToNotification extends Migration {
 
   val table = "notification"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addColumn(table, "uuid", VarcharType);
 
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

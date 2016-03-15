@@ -10,7 +10,7 @@ class Migrate_20150813094316_AddSocialAccounts extends Migration {
 
   val table = "social_account"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.varchar("provider", NotNull, Limit(100), CharacterSet(Unicode))
@@ -28,7 +28,7 @@ class Migrate_20150813094316_AddSocialAccounts extends Migration {
 
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 }

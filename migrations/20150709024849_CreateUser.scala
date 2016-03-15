@@ -10,7 +10,7 @@ class Migrate_20150709160310_CreateUser extends Migration {
 
   val table = "users"
   
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.varchar("user_name", NotNull, Limit(32), CharacterSet(Unicode))
@@ -27,7 +27,7 @@ class Migrate_20150709160310_CreateUser extends Migration {
     addIndex(table, Array("secret_key"), Name("users_secret_key_index"))
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 

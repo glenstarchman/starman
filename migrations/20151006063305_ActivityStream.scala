@@ -6,7 +6,7 @@ class Migrate_20151006063305_ActivityStream extends Migration {
 
   val table = "activity_stream"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.bigint("user_id", NotNull)
@@ -22,7 +22,7 @@ class Migrate_20151006063305_ActivityStream extends Migration {
     addIndex(table, Array("created_at"), Name("as_created_index"))
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 }

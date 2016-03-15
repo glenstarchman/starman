@@ -6,11 +6,11 @@ class Migrate_20151006093247_ConvertToNewActivityStream extends Migration {
 
   val table = "activity_stream"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
 
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

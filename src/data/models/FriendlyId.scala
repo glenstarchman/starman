@@ -12,7 +12,7 @@ case class FriendlyId(var id: Long = 0,
                       var model: String,
                       var modelId: Long,
                       var hash: String,
-                      var createdAt: Timestamp=new Timestamp(System.currentTimeMillis), 
+                      var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
                       var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis))
   extends BaseStarmanTableWithTimestamps {
 
@@ -21,7 +21,7 @@ case class FriendlyId(var id: Long = 0,
 object FriendlyId extends CompanionTable[FriendlyId] {
 
   def getIdFromHash(model: String, hash: String) = fetchOne {
-    from(FriendlyIds)(fi => 
+    from(FriendlyIds)(fi =>
     where(fi.model === model and fi.hash === hash)
     select(fi.modelId))
   }
@@ -49,14 +49,14 @@ object FriendlyId extends CompanionTable[FriendlyId] {
       case x => x
     }
 
-    val baseHash = if (slug.forall(_.isDigit)) { 
+    val baseHash = if (slug.forall(_.isDigit)) {
       s"${slug}-"
     } else {
       slug
     }.reverse.dropWhile(_ == '-').reverse
 
     val suffix = fetchOne {
-      from(FriendlyIds)(fi => 
+      from(FriendlyIds)(fi =>
       where(fi.model === "User"  and fi.hash === baseHash)
       groupBy(fi.hash)
       compute(count(fi.hash)))
@@ -84,7 +84,7 @@ object FriendlyId extends CompanionTable[FriendlyId] {
       s.replace('-', '.')
     }
 
-    val baseHash = if (slug.forall(_.isDigit)) { 
+    val baseHash = if (slug.forall(_.isDigit)) {
       s"${slug}-"
     } else {
       slug
@@ -103,7 +103,7 @@ object FriendlyId extends CompanionTable[FriendlyId] {
     }
 
     val hashExists = fetchOne {
-      from(FriendlyIds)(fi => 
+      from(FriendlyIds)(fi =>
       where(fi.model === model and fi.hash === baseHash and fi.modelId <> id)
       select(fi))
     }
@@ -120,4 +120,3 @@ object FriendlyId extends CompanionTable[FriendlyId] {
     }
   }
 }
-

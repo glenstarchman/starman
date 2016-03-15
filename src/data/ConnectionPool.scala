@@ -9,7 +9,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 import starman.common.{StarmanConfig, Log}
 import starman.common.exceptions._
- 
+
 object ConnectionPool extends Log {
 
   def shutdown() = {
@@ -29,7 +29,9 @@ object ConnectionPool extends Log {
   }
 
   lazy private[this] val config = StarmanConfig("db")
-  lazy val connectionString = s"jdbc:postgresql://${config("db.host").toString}/${config("db.database").toString}"
+
+  //TODO use config to specify DB type
+  lazy val connectionString = s"jdbc:${config("db.engine").toString}://${config("db.host").toString}/${config("db.database").toString}"
 
   lazy val squerylDatasource = {
     val ds = new BoneCPDataSource();  // create a new datasource object
@@ -47,7 +49,7 @@ object ConnectionPool extends Log {
       Some(ds)
     } catch {
       case exception: Exception => {
-        fatal("unable to create datasource for Slick")
+        fatal("unable to create datasource for Squeryl: ''${connectionString}'")
         fatal(exception)
         throw(new DatasourceNotAvailableException())
       }
@@ -99,11 +101,11 @@ object ConnectionPool extends Log {
       }
     }
   }
-   
+
   def getConnection: Option[Connection] = {
     connectionPool match {
       case Some(connPool) => Some(connPool.getConnection)
-      case _ => throw(new DatasourceNotAvailableException()) 
+      case _ => throw(new DatasourceNotAvailableException())
     }
   }
 

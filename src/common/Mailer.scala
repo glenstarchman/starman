@@ -133,7 +133,7 @@ class Mailer {
 }
 
 object Mailer {
-  def uploadTemplate(templatePath: String, templateName: String) {
+  def uploadTemplate(templatePath: String, templateName: String): Unit = {
     val mailer = new Mailer()
     mailer.uploadAndPublishTemplate(templatePath, templateName)
     println("done")

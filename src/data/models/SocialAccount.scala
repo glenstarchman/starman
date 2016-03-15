@@ -6,9 +6,9 @@ package starman.data.models
 
 import java.sql.Timestamp
 import org.json4s._
-import org.json4s.native.Serialization._
-import org.json4s.native.Serialization
-import com.restfb.types.Location 
+import org.json4s.jackson.Serialization._
+import org.json4s.jackson.Serialization
+import com.restfb.types.Location
 import starman.common.helpers.{Hasher, TokenGenerator}
 import starman.common.Types._
 import starman.common.social.StarmanFacebook
@@ -27,7 +27,7 @@ case class SocialAccount(var id: Long = 0,
   extends BaseStarmanTableWithTimestamps {
 
   def user() = fetchOne {
-      from(Users)(u => 
+      from(Users)(u =>
       where (u.id === userId)
       select(u))
   }
@@ -39,7 +39,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
 
   def getUser(provider: String, accessToken: String) = {
     val account = fetchOne {
-      from(SocialAccounts)(sa => 
+      from(SocialAccounts)(sa =>
       where(sa.provider === provider and sa.accessToken === accessToken)
       select(sa))
     }
@@ -77,7 +77,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
       val username = s"${userData("firstName").toString}.${userData("lastName").toString}".toLowerCase
 
       userData("email") match {
-        case x: String if x != null => () 
+        case x: String if x != null => ()
         case _ => userData ++ Map("email" -> s"${userData("id").toString}@facebook.com")
       }
       val exists = getByUid("facebook", userData("id").toString)
@@ -89,12 +89,12 @@ object SocialAccount extends CompanionTable[SocialAccount] {
         })
       }
 
-      val user = User(userName = username, accessToken = at, 
+      val user = User(userName = username, accessToken = at,
                       secretKey = sk, email = userData("email") match {
                         case x:String => x.toString
                         case _ => ""
                       }
-      ) 
+      )
 
       existingUser match {
         case Some(x) => {
@@ -109,8 +109,8 @@ object SocialAccount extends CompanionTable[SocialAccount] {
         }
         case _ => ()
       }
-     
-      //grab their friend list and store/update it 
+
+      //grab their friend list and store/update it
       //we do this in a future because it may take some time
       withTransaction {
         Users.upsert(user)
@@ -131,7 +131,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
         val firstName = if(prof!=null && prof.firstName != "") prof.firstName else userData("firstName").toString
         val lastName = if(prof!=null && prof.lastName !="") prof.lastName else userData("lastName").toString
         val bio = if(prof!=null && prof.bio !="") {
-          prof.bio 
+          prof.bio
         } else if (userData("bio") != null) {
           userData("bio").toString
         } else {
@@ -139,7 +139,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
         }
 
         val tagline = if(prof!=null && prof.tagline !="") {
-          prof.tagline 
+          prof.tagline
         } else if (userData("about") != null) {
           userData("bio").toString
         } else {
@@ -147,7 +147,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
         }
 
         val location = if(prof!=null && prof.location != "") {
-          prof.location 
+          prof.location
         } else if (userData("location") != null) {
           userData("location").toString
         } else {
@@ -160,13 +160,13 @@ object SocialAccount extends CompanionTable[SocialAccount] {
           s"https://graph.facebook.com/${userData("id").toString}/picture?width=200&height=200"
         }
 
-        val profile = Profile.createOrUpdate(userId = u.id, 
+        val profile = Profile.createOrUpdate(userId = u.id,
                         firstName = firstName,
                         lastName = lastName,
                         bio = bio,
-                        tagline = tagline, 
+                        tagline = tagline,
                         profilePicture = profilePicture,
-                        location = location 
+                        location = location
                       )
 
         profile match {
@@ -174,7 +174,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
             _user match {
               case Some(u) => p.id = u.profile match {
                 case Some(p2) => p2.id
-                case _ => 0l 
+                case _ => 0l
               }
               case _ =>
             }
@@ -195,7 +195,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
   }
 
   def getByProvider(provider: String, accessToken: String) = fetchOne {
-    from(SocialAccounts)(sa => 
+    from(SocialAccounts)(sa =>
     where(sa.provider === provider and sa.accessToken === accessToken)
     select(sa))
   }
@@ -210,7 +210,7 @@ object SocialAccount extends CompanionTable[SocialAccount] {
         user match {
           case Some(u) => {
             //add a link to their FB profile
-            create(provider, u.id, data("id").toString, 
+            create(provider, u.id, data("id").toString,
                    accessToken, "", write(data))
           }
           case _ => None
@@ -225,11 +225,11 @@ object SocialAccount extends CompanionTable[SocialAccount] {
     }
   }
 
-  def create(provider: String, userId: Long, uid: String, accessToken: String, 
+  def create(provider: String, userId: Long, uid: String, accessToken: String,
              secretKey: String = "", extra: String = "") = {
 
     //check if exists
-    val s = getByUid(provider, uid)  
+    val s = getByUid(provider, uid)
 
     s match {
       case Some(x) => {
@@ -241,15 +241,15 @@ object SocialAccount extends CompanionTable[SocialAccount] {
         }
       }
       case _ => {
-        val sa = SocialAccount(provider=provider, userId = userId, uid=uid, 
-                               accessToken=accessToken, 
+        val sa = SocialAccount(provider=provider, userId = userId, uid=uid,
+                               accessToken=accessToken,
                                secretKey=secretKey, extra=extra)
 
         withTransaction {
           SocialAccounts.upsert(sa)
           Option(sa)
-        } 
-      }  
+        }
+      }
     }
   }
 

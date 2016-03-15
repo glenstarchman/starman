@@ -87,7 +87,7 @@ trait TraceLog extends Log {
 
 /* allows for code like:
 
-  val x = TraceLoglog("name of block") {
+  val x = TraceLoglog("name of block"): Unit = {
     ... calculations and statements ...
     ... possibly with some return value of type T
   }

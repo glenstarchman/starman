@@ -8,7 +8,7 @@ import xitrum.{Server, Config}
 import starman.common.StarmanConfig
 
 object Boot extends App {
-  override def main(args: Array[String]) {
+  override def main(args: Array[String]): Unit = {
     val routes = Config.routes
     //remove any routes beginning with /xitrum if not in dev local
     val mode = StarmanConfig.env
@@ -24,15 +24,15 @@ object Boot extends App {
     start()
   }
 
-  def start() {
+  def start(): Unit = {
     Server.start()
   } 
 
-  def stop() {
+  def stop(): Unit = {
     Server.stop()
   }
 
-  def test() {
+  def test(): Unit = {
     try {
       Server.stop()
     } finally {

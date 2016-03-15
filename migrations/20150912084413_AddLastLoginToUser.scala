@@ -6,11 +6,11 @@ class Migrate_20150912084413_AddLastLoginToUser extends Migration {
 
   val table = "users"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addColumn(table, "last_login", TimestampType) 
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

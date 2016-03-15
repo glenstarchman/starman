@@ -14,28 +14,28 @@ import starman.common.StarmanConfig
 import starman.common.helpers.Text
 import starman.common.converters.Convertable
 
-case class ImageInfo(src: String, title: String, dimensions: List[Int], fileSize: Int) extends Convertable 
-case class PageInfo(title: String, images: List[ImageInfo], 
+case class ImageInfo(src: String, title: String, dimensions: List[Int], fileSize: Int) extends Convertable
+case class PageInfo(title: String, images: List[ImageInfo],
                     oembed: Map[String, String], description: String) extends Convertable
 
 class Scraper(u: String) {
 
-  val MINIMUM_IMAGE_WIDTH = 64 
-  val MINIMUM_IMAGE_HEIGHT = 64 
+  val MINIMUM_IMAGE_WIDTH = 64
+  val MINIMUM_IMAGE_HEIGHT = 64
   val MAX_IMAGE_COUNT = 5
   val OEMBED_PROVIDERS = List("youtube", "vimeo", "instagram", "soundcloud", "twitter", "vine")
 
   val url = Text.httpize(u)
   lazy val _url = new URL(url)
-  lazy val protocol = _url.getProtocol 
+  lazy val protocol = _url.getProtocol
   lazy val host = _url.getHost
   lazy val port = _url.getPort
   lazy val path = _url.getPath
   lazy val params = _url.getQuery
 
-  lazy private val browser = new Browser 
-  lazy private val doc: Document = browser.get(url) 
-  
+  lazy private val browser = new Browser
+  lazy private val doc: Document = browser.get(url)
+
   //validate that a URL is of the correct format for the provider
   lazy val isUrlValid = {
     provider match {
@@ -44,12 +44,12 @@ class Scraper(u: String) {
         (path.matches("/([-_.a-zA-Z0-9]*)"))
       }
 
-      case "facebook" => path.matches("/([a-zA-Z0-9.-]*)/posts/([0-9]*)") 
+      case "facebook" => path.matches("/([a-zA-Z0-9.-]*)/posts/([0-9]*)")
       case "twitter" => path.matches("/([a-zA-Z0-9.-]*)/status/([0-9]*)")
       case "instagram" =>  path.matches("/p/([-._a-zA-Z0-9]*)")
       case "vine" => path.matches("/v/([-._a-zA-Z0-9]*)")
       case "soundcloud" => path.matches("/([-._a-zA-Z0-9]*)/([-._a-zA-Z0-9]*)")
-      case "vimeo" => path.matches("/([0-9]+)") 
+      case "vimeo" => path.matches("/([0-9]+)")
       case _ => true
     }
   }
@@ -65,21 +65,21 @@ class Scraper(u: String) {
       case _::"twitter"::_ | "twitter"::_ => "twitter"
       case _::"soundcloud"::_ | "soundcloud"::_ => "soundcloud"
       case "vine"::"co"::_ | _::"vine"::_  | "vine"::_ => "vine"
-      case _ => host 
+      case _ => host
     }
   }
 
 	lazy val isOembedProject = (provider != host) && isUrlValid
 
 
-  lazy val ogTitle = 
-    doc >?> attr("content")("meta[property=og:title]") 
+  lazy val ogTitle =
+    doc >?> attr("content")("meta[property=og:title]")
 
-  lazy val ogImage =  
-    doc >?> attr("content")("meta[property=og:image]") 
+  lazy val ogImage =
+    doc >?> attr("content")("meta[property=og:image]")
 
-  lazy val ogDescription =  
-    doc >?> attr("content")("meta[property=og:description]") 
+  lazy val ogDescription =
+    doc >?> attr("content")("meta[property=og:description]")
 
 
   private def getTitle() = ogTitle match {
@@ -107,7 +107,7 @@ class Scraper(u: String) {
         val imageUrls = doc >> attrs("src")("img")
         val imageTitles = doc >> attrs("title")("img")
         val imageAlts = doc >> attrs("alt")("img")
-        val finalImageUrls = imageUrls.map(img => Text.httpize(img)) 
+        val finalImageUrls = imageUrls.map(img => Text.httpize(img))
         (finalImageUrls.toList, imageTitles.toList, imageAlts.toList).zipped.toList
       }
     }
@@ -122,7 +122,7 @@ class Scraper(u: String) {
           case _ => image._3 match {
             case alt: String => alt
             case _ => "No Description"
-          }  
+          }
         }),
         dimensions = List(dimensions(0), dimensions(1)),
         fileSize =  dimensions(2)
@@ -132,7 +132,7 @@ class Scraper(u: String) {
 
   lazy val oembed = provider match {
     case p if OEMBED_PROVIDERS.contains(provider) => Oembed.fetch(url, provider)
-    case _ => Map[String, String]() 
+    case _ => Map[String, String]()
   }
 
   lazy val assets = {
@@ -142,7 +142,7 @@ class Scraper(u: String) {
     } catch {
       case e: Exception => List.empty
     }
-    
+
     val title = provider match {
       case "website" => getTitle
       case _ => oembed.getOrElse("title", getTitle)

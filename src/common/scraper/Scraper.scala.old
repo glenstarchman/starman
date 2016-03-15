@@ -13,7 +13,7 @@ import com.didd.common.helpers.{ImageHandler, ImageHelper}
 import com.didd.common.DiddConfigFactory.config
 import com.didd.common.helpers.Text
 
-class Scraper(u: String) {
+class Scraper(u: String): Unit = {
 
   val MINIMUM_IMAGE_WIDTH = 64
   val OEMBED_PROVIDERS = List("youtube", "vimeo", "instagram", "soundcloud", "twitter", "vine")

@@ -43,7 +43,7 @@ object ImageHandler {
       dimensions
     }
     catch {
-      case e: Exception => null 
+      case e: Exception => null
     }
   }
 
@@ -69,7 +69,7 @@ object ImageHandler {
       ImageIO.read(bais)
     }
     catch {
-      case ex: Exception => null 
+      case ex: Exception => null
     }
   }
 
@@ -92,7 +92,7 @@ object ImageHandler {
     dest
   }
 
-  def saveBufferedImage(image: BufferedImage, localPath: String) {
+  def saveBufferedImage(image: BufferedImage, localPath: String): Unit = {
     val file: File = new File(localPath)
     try {
       ImageIO.write(image, getFileExtension(file.getName), file)
@@ -112,7 +112,7 @@ object ImageHandler {
       localPath
     }
     catch {
-      case e: Exception => { "" } 
+      case e: Exception => { "" }
     }
   }
 }

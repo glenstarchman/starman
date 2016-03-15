@@ -53,14 +53,14 @@ object Mapper {
         case p: Product if p.productArity > 0 => ccToMap(p)
         case x => x
       })
-    }.toMap 
+    }.toMap
 
   }
 
-  def ccToJson(cc: Product): JSONObject = new JSONObject(ccToMap(cc, false)) 
+  def ccToJson(cc: Product): JSONObject = new JSONObject(ccToMap(cc, false))
 
   def jsonToCC(j: JSONObject) = {
-    val data = j.obj.map(x => 
+    val data = j.obj.map(x =>
       (camelize(x._1) -> x._2)
     )
     ccFromMap(data)
@@ -84,7 +84,7 @@ object Mapper {
 
   /* Map conversions */
   //simple by kv grouping
-  def toMultiMap(p: Map[_,_]) = p.groupBy(_._1).mapValues(_.map(_._2)) 
+  def toMultiMap(p: Map[_,_]) = p.groupBy(_._1).mapValues(_.map(_._2))
 
   /* all implicits */
   implicit def cc2json(cc: Product): JSONObject = ccToJson(cc)
@@ -96,7 +96,7 @@ object Mapper {
    you should probably not user Mapper by itself */
 
 trait Convertable extends Product {
-  def extraMap(): MapAny = Map.empty 
+  def extraMap(): MapAny = Map.empty
   def asMap(underscore: Boolean = false) = Mapper.ccToMap(this, underscore) ++ extraMap
   def asMap(): MapAny = asMap(false) ++ extraMap
   def asJson = Mapper.ccToJson(this)

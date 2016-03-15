@@ -10,7 +10,7 @@ class Migrate_20150824101325_CreateSocialFriends extends Migration {
 
   val table = "social_friend"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id", AutoIncrement, PrimaryKey)
       t.bigint("user_id", NotNull)
@@ -27,7 +27,7 @@ class Migrate_20150824101325_CreateSocialFriends extends Migration {
 
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 }

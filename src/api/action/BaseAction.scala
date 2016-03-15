@@ -16,8 +16,8 @@ import xitrum.{Action, FutureAction, WebSocketAction}
 import xitrum.view.ScalateEngine
 import xitrum.SkipCsrfCheck
 import org.json4s._
-import org.json4s.native.Serialization
-import org.json4s.native.Serialization._
+import org.json4s.jackson.Serialization
+import org.json4s.jackson.Serialization._
 import com.mindscapehq.raygun4java.core.RaygunClient
 import com.mindscapehq.raygun4java.core.messages.RaygunIdentifier
 import net.sf.uadetector.service._
@@ -67,6 +67,7 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
     false
   }
 
+
   val unauthorizedMessageJson = Map(
     "error" -> "unauthorized"
   )
@@ -81,7 +82,10 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
 
 
   /* return POST data as Json */
-  lazy val jsonPayload: Option[MapAny] = requestContentJson[MapAny]
+  lazy val jsonPayload: Option[MapAny] = requestContentJValue match {
+    case j: JValue => Option(j.extract[MapAny])
+    case _ => Option(Map[String, Any]())
+  }
 
   /* attempt to pull out a User from an access token */
   lazy val user  = {
@@ -245,21 +249,22 @@ trait MustacheAction extends BaseAction {
 /* handles JSON and JSONP responses */
 trait JsonAction extends BaseAction with SkipCsrfCheck {
 
-  def futureExecute(callback: () => Any) {
+  def futureExecute(callback: () => Any): Unit = {
     val future = Future { callback() }
     future onComplete {
-      case Success((code: StatusCode, result:Any)) => {
+      case Success((code: StatusCode, result: Any)) => {
         result match {
           case r: Map[_, _] => respond(code, r.asInstanceOf[MapAny])
           case r: List[_] => respond(code, r.asInstanceOf[List[MapAny]])
           case r: Convertable => respond(code, r.asMap)
           //result is unknown so throw a ResponseException
-          case _ => respondException(new ResponseException())
+          case _ => respondException(new ResponseException)
         }
       }
       case Success(f: io.netty.channel.ChannelFuture) =>  f
+      // is not a Tiple2(StatusCode, [List|Map]) or ChannelFuture.. should not happen
       case Success(f: Any) => respondException(new ResponseException)
-      case Failure(ex) => {println(ex); respondException(ex) }
+      case Failure(ex) => respondException(ex)
     }
   }
 
@@ -305,7 +310,7 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
 
     //in dev-local mode return the undelying exception, if available
     val message = underlyingException match {
-      case Some(exc) => if (StarmanConfig.env == "dev-local") {
+      case Some(exc) => if (StarmanConfig.env == "dev-local")  {
         Map(
           "message" -> s"${userInfo} - ${e.getMessage}",
           "underlyingException" -> serializeException(exc)

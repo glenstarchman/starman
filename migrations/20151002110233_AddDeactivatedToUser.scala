@@ -6,11 +6,11 @@ class Migrate_20151002110233_AddDeactivatedToUser extends Migration {
 
   val table = "users"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addColumn(table, "deactived", BooleanType, NotNull, Default("false"))
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

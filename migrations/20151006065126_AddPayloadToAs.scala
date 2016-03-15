@@ -6,11 +6,11 @@ class Migrate_20151006065126_AddPayloadToAs extends Migration {
 
   val table = "activity_stream"; //put your table name here
 
-  def up() {
+  def up(): Unit = {
     addColumn(table, "payload", VarcharType, Limit(16384))
   }
 
-  def down() {
+  def down(): Unit = {
     //dropTable(table)
   }
 }

@@ -10,7 +10,7 @@ object Deploy {
   lazy val env = Properties.envOrElse("Starman_MODE", "dev-local")
   val bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val action = args(0)
     action match {
       case "image_upload" => {
@@ -31,7 +31,7 @@ object Deploy {
   }
 
   //upload images to S3 from a particular directory
-  private def uploadImages(basePath: String, remoteDir: String ) {
+  private def uploadImages(basePath: String, remoteDir: String ): Unit = {
     val images = FileReader.filesAtWithExtension(basePath, "png") ++
                  FileReader.filesAtWithExtension(basePath, "gif") ++
                  FileReader.filesAtWithExtension(basePath, "jpg")
@@ -43,7 +43,7 @@ object Deploy {
 
   }
 
-  private def uploadEmailTemplate(templatePath: String, templateName: String) {
+  private def uploadEmailTemplate(templatePath: String, templateName: String): Unit = {
     Mailer.uploadTemplate(templatePath, templateName)
   }
 }

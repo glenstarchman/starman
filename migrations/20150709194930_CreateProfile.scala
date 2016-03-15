@@ -10,7 +10,7 @@ class Migrate_20150709160328_CreateProfile extends Migration {
 
   val table = "profile"
   
-  def up() {
+  def up(): Unit = {
     createTable(table) { t =>
       t.bigint("id",  AutoIncrement, PrimaryKey)
       t.bigint("user_id", NotNull, Unique)
@@ -35,7 +35,7 @@ class Migrate_20150709160328_CreateProfile extends Migration {
 
   }
 
-  def down() {
+  def down(): Unit = {
     dropTable(table)
   }
 

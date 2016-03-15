@@ -5,21 +5,21 @@ import scala.concurrent.Future
 import java.sql.Timestamp
 import scala.util.parsing.json.{JSON, JSONObject, JSONArray}
 import org.json4s._
-import org.json4s.native.JsonMethods._
+import org.json4s.jackson.JsonMethods._
 import org.json4s.Extraction._
-import org.json4s.native.Serialization._
-import org.json4s.native.Serialization
+import org.json4s.jackson.Serialization._
+import org.json4s.jackson.Serialization
 import starman.common.Types._
 import StarmanSchema._
 
-case class ActivityStream(override var id: Long=0, 
+case class ActivityStream(override var id: Long=0,
                 var userId: Long = 0,
                 var action: String = "",
                 var model: String = "",
                 var modelId: Long = 0,
                 var payload: String = "",
-                var createdAt: Timestamp=new Timestamp(System.currentTimeMillis), 
-                var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis) 
+                var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
+                var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis)
 ) extends BaseStarmanTableWithTimestamps {
   def getObject = fetchOne {
     val m = lookup(model)
@@ -31,9 +31,9 @@ case class ActivityStream(override var id: Long=0,
 
 object ActivityStream extends CompanionTable[ActivityStream] {
 
-  implicit val format = Serialization.formats(NoTypeHints) 
+  implicit val format = Serialization.formats(NoTypeHints)
 
-  private def get(streamType: String, id: Long=0, 
+  private def get(streamType: String, id: Long=0,
                         startTimestamp: Option[Timestamp] = None,
                         endTimestamp: Option[Timestamp] = None) = {
 
@@ -48,7 +48,7 @@ object ActivityStream extends CompanionTable[ActivityStream] {
     }
 
     val as = streamType match {
-      case "user" => fetch { 
+      case "user" => fetch {
         join(ActivityStreams, Users.leftOuter)((a, u) =>
         where(a.createdAt >= start and a.createdAt <= end and a.userId === id)
         select(a, u)
@@ -57,7 +57,7 @@ object ActivityStream extends CompanionTable[ActivityStream] {
         ))
       }
 
-      case "system" => fetch { 
+      case "system" => fetch {
         join(ActivityStreams, Users.leftOuter)((a, u) =>
         where(a.createdAt >= start and a.createdAt <= end)
         select(a, u)
@@ -66,17 +66,17 @@ object ActivityStream extends CompanionTable[ActivityStream] {
         ))
       }
 
-      case _ => List.empty 
+      case _ => List.empty
     }
 
-    val stream = as.map { 
+    val stream = as.map {
       case (a, u) => Map(
         "actor" -> {
           u match {
             case Some(m) => m.asMiniMap
             case _ => Map[String, Any]()
           }
-        }, 
+        },
         "object" -> {
           if (a.payload != null && a.payload !="") {
             extract[MapAny](parse(a.payload))
@@ -87,7 +87,7 @@ object ActivityStream extends CompanionTable[ActivityStream] {
         "objectType" -> a.model,
         "action" -> a.action,
         "timestamp" -> a.createdAt
-      ) 
+      )
     }
     sort(stream)
   }
@@ -105,7 +105,7 @@ object ActivityStream extends CompanionTable[ActivityStream] {
   }
 
 
-  private def sort(stream: ListMap) = 
+  private def sort(stream: ListMap) =
     stream.sortBy(_("timestamp").asInstanceOf[Timestamp].getTime)
 
   def create(userId: Long, action: String,
@@ -113,8 +113,8 @@ object ActivityStream extends CompanionTable[ActivityStream] {
              payload: MapAny = Map.empty, timestamp: Timestamp = null) = {
     Future {
       val json = write(payload)
-      val as = ActivityStream(userId = userId, 
-                              action = action, model = model, 
+      val as = ActivityStream(userId = userId,
+                              action = action, model = model,
                               modelId = modelId, payload = json)
       withTransaction {
         if (timestamp != null) {
