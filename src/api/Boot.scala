@@ -26,7 +26,7 @@ object Boot extends App {
 
   def start(): Unit = {
     Server.start()
-  } 
+  }
 
   def stop(): Unit = {
     Server.stop()

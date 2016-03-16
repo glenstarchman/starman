@@ -324,7 +324,8 @@ object Config {
       //
       // Unlike ConfigFactory.load(), when class loader is given but
       // "application" is not given, "application.conf" is not loaded!
-      ConfigFactory.load(Thread.currentThread.getContextClassLoader, "application")
+      lazy val c = ConfigFactory.parseFile(new File("config/application.conf"))
+      ConfigFactory.load(c)
     } catch {
       case NonFatal(e) =>
         exitOnStartupError("Could not load config/application.conf. For an example, see https://github.com/xitrum-framework/xitrum-new/blob/master/config/application.conf", e)
@@ -335,9 +336,11 @@ object Config {
   /** This represents things in xitrum.conf. */
   val xitrum: XitrumConfig = {
     try {
+      println(application.entrySet)
       new XitrumConfig(application.getConfig("xitrum"))
     } catch {
       case NonFatal(e) =>
+        throw(e)
         exitOnStartupError("Could not load config/xitrum.conf. For an example, see https://github.com/xitrum-framework/xitrum-new/blob/master/config/xitrum.conf", e)
         throw e
     }
