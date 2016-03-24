@@ -19,7 +19,7 @@ import xitrum.scope.request.PathInfo
 import xitrum.sockjs.SockJsPrefix
 
 object Dispatcher {
-  private val CLASS_OF_ACTOR         = classOf[Actor]  // Can't be ActorAction, to support WebSocketAction and SockJsAction
+  private val CLASS_OF_ACTOR = classOf[Actor]  // Can't be ActorAction, to support WebSocketAction and SockJsAction
   private val CLASS_OF_FUTURE_ACTION = classOf[FutureAction]
 
   private val routeReloader = if (Config.productionMode) None else Some(new RouteReloader)

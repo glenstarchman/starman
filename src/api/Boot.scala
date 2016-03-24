@@ -12,6 +12,8 @@ object Boot extends App {
     val routes = Config.routes
     //remove any routes beginning with /xitrum if not in dev local
     val mode = StarmanConfig.env
+    println(routes)
+
 
     mode match {
       case "dev-local" => ()
@@ -22,6 +24,10 @@ object Boot extends App {
       }
     }
     start()
+  }
+
+  def start(port: Int): Unit = {
+    Server.start(port)
   }
 
   def start(): Unit = {

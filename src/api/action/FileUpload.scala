@@ -2,8 +2,10 @@ package starman.api.action
 
 import io.netty.handler.codec.http.multipart.FileUpload
 import xitrum.annotation.{GET, POST, First, Last, Swagger}
-import com.ovrhd.common.exceptions._
-import com.ovrhd.common.helpers.{ImageHelper, AmazonS3, RandomStringGenerator}
+import starman.common.exceptions._
+import starman.common.Types._
+import starman.common.helpers.{ImageHelper, AmazonS3, RandomStringGenerator}
+import starman.common.StarmanConfig
 
 @Swagger(
   Swagger.Tags("Upload", "No Auth"),
@@ -20,8 +22,7 @@ trait UploadApi extends JsonAction
 )
 class FileUploadAction extends UploadApi {
   def execute() {
-    futureExecute(() => {
-
+    render {
       val acceptedContentTypes = Map(
         "image/gif" -> "gif",
         "image/jpeg" -> "jpg",
@@ -37,7 +38,7 @@ class FileUploadAction extends UploadApi {
       val file = fileUpload.getFile
       val ct = fileUpload.getContentType
       val fn = fileUpload.getFilename
-      val bucket = config("aws.s3.asset_bucket").toString
+      val bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
 
       if (acceptedContentTypes.keySet.contains(ct)) {
         val filename = RandomStringGenerator.generate(64) + "." + acceptedContentTypes(ct);
@@ -49,13 +50,13 @@ class FileUploadAction extends UploadApi {
             val r = Map(
               "filename" -> remoteFilename
             )
-            (R.OK, r)
+            MapResponse(R.OK, r)
           }
-          case _ => throw(new FileUploadFailedException())
+          case _ => ExceptionResponse(new FileUploadFailedException())
         }
       } else {
-        throw(new UnknownImageTypeException())
+        ExceptionResponse(new UnknownImageTypeException())
       }
-    })
+    }
   }
 }

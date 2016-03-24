@@ -154,6 +154,12 @@ class ResponseException(
     exc: Option[Exception] = None)
   extends StarmanException(message, code, exc = exc)
 
+class ResponseTimeoutException(
+    message: String = "The API server timed out",
+    code: StatusCode = R.GENERIC_ERROR,
+    exc: Option[Exception] = None)
+  extends StarmanException(message, code, exc = exc)
+
 class DatasourceNotAvailableException(
     message: String = "FATAL: Unable to connect to data source",
     code: StatusCode = R.GENERIC_ERROR,

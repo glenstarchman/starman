@@ -10,13 +10,14 @@ import starman.common.social.StarmanFacebook
 import starman.common.exceptions._
 import starman.common.Codes.StatusCode
 import starman.common.Enums._
+import starman.common.Types._
 
 
 @Swagger(
   Swagger.Tags("System", "No Auth"),
   Swagger.Produces("application/json")
 )
-trait SystemApi extends JsonAction 
+trait SystemApi extends JsonAction
 
 @Swagger(
   Swagger.Tags("System", "Needs Authentication"),
@@ -47,7 +48,7 @@ class SystemVariables extends SystemApi {
         "raygun.api_key" -> config("raygun.api_key"),
         "host.url" -> config("host.url"),
         "stripe.pub_key" -> config("stripe.pub_key")
-      ) 
+      )
       (R.OK, data)
     })
   }

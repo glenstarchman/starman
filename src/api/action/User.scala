@@ -11,6 +11,7 @@ import starman.data.models.StarmanSchema._
 import starman.common.converters.ListConverter
 import starman.common.social.StarmanFacebook$
 import starman.common.exceptions._
+import starman.common.Types._
 import starman.common.Codes.StatusCode
 
 @Swagger(
@@ -37,20 +38,20 @@ trait AuthorizedUserApi extends AuthorizedJsonAction
 )
 class UserInfo extends UserApi with TrackableView {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       val id = param("id")
       val userData = UserHelper.getAsMap(id)
       userData match {
         case Some(user) => {
           if (user("deactivated").toString.toBoolean) {
-            throw(new NoUserException())
+            ExceptionResponse(new NoUserException)
           } else {
-            (R.OK, user)
+            MapResponse(R.OK, user)
           }
         }
-        case _ => throw(new NoUserException())
+        case _ => ExceptionResponse(new NoUserException)
       }
-    })
+    }
   }
 }
 
@@ -65,17 +66,15 @@ class UserInfo extends UserApi with TrackableView {
 )
 class UserAddDevice extends AuthorizedUserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       val userId = user.get.id
       val token = param[String]("token")
       val deviceType = param[String]("device_type")
       val uuid = param[String]("uuid")
       val n = Notification.create(userId, token, deviceType, uuid)
-      (R.OK, n.asMap)
-    })
-   }
-
-
+      MapResponse(R.OK, n.asMap)
+    }
+  }
 }
 
 @POST("api/user/:id/activity")
@@ -89,7 +88,7 @@ class UserAddDevice extends AuthorizedUserApi {
 )
 class UserActivity extends UserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       val id = param("id") match {
         case "self" => {
           user match {
@@ -124,19 +123,7 @@ class UserActivity extends UserApi {
         ActivityStream.getForUser(id, start, end)
       }
       */
-      (R.OK, ActivityStream.getForUser(id, start, end))
-    })
-  }
-}
-
-@GET("user/:id")
-@GET("profile/:id")
-class UserProfileAction extends BaseAction {
-  def execute(): Unit = {
-    if (isBot) {
-      //forwardTo[StaticProfile]()
-    } else {
-      redirectTo(s"/#profile/${param("id").toString}")
+      ListResponse(R.OK, ActivityStream.getForUser(id, start, end))
     }
   }
 }
@@ -150,17 +137,17 @@ class UserProfileAction extends BaseAction {
 )
 class ValidateAccessToken extends UserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       paramo("accessToken") match {
         case Some(at) => {
           User.get(at) match {
-            case Some(user) => (R.OK, Map("status" -> "The access token is valid"))
-            case _ => throw(new NoUserException())
+            case Some(user) => MapResponse(R.OK, Map("status" -> "The access token is valid"))
+            case _ => ExceptionResponse(new NoUserException())
           }
         }
-        case _ => throw(new MissingParameterException("The parameter `accessToken` is required"))
+        case _ => ExceptionResponse(new MissingParameterException("The parameter `accessToken` is required"))
       }
-    })
+    }
   }
 }
 
@@ -173,10 +160,10 @@ class ValidateAccessToken extends UserApi {
 )
 class UserSettings extends AuthorizedUserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       val settings = Setting.getForUser(user.get.id).map(_.asMap)
-      (R.OK, settings)
-    })
+      ListResponse(R.OK, settings)
+    }
   }
 }
 
@@ -190,10 +177,10 @@ class UserSettings extends AuthorizedUserApi {
 )
 class UserUpdateSettings extends AuthorizedUserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       val s = Setting.createOrUpdate(user.get.id, param[String]("name"), param[String]("value"))
-      (R.OK, s.asMap)
-    })
+      MapResponse(R.OK, s.asMap)
+    }
   }
 }
 
@@ -210,7 +197,7 @@ class UserUpdateSettings extends AuthorizedUserApi {
 )
 class UserCreateAccount extends UserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       //val userName = User.validateUserName(param[String]("username"))
       val firstName = param[String]("firstName")
       val lastName = param[String]("lastName")
@@ -232,11 +219,11 @@ class UserCreateAccount extends UserApi {
             lastName = lastName,
             profilePicture = "https://s3-us-west-2.amazonaws.com/starman-ventures/default/default_user.jpg"
           )
-          (R.OK, user.asLoginMap)
+          MapResponse(R.OK, user.asLoginMap)
         }
-        case _ => throw(new CreateOrUpdateFailedException(message="Unable to create user"))
+        case _ => ExceptionResponse(new CreateOrUpdateFailedException(message="Unable to create user"))
       }
-    })
+    }
   }
 }
 
@@ -252,7 +239,7 @@ class UserCreateAccount extends UserApi {
 )
 class UserLoginWithProvider extends UserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       val provider = paramo("provider") match {
         case Some(x) => x
         case _ => ""
@@ -264,8 +251,8 @@ class UserLoginWithProvider extends UserApi {
           val password = (paramo("password") getOrElse "").toString
           val u = User.checkLogin(username, password)
           u match {
-            case Some(x) => (R.USER_LOGIN, x.asLoginMap)
-            case _ => (R.INVALID_LOGIN_CREDENTIALS, EmptyResult)
+            case Some(x) => MapResponse(R.USER_LOGIN, x.asLoginMap)
+            case _ => MapResponse(R.INVALID_LOGIN_CREDENTIALS, EmptyResult)
           }
         }
 
@@ -274,15 +261,15 @@ class UserLoginWithProvider extends UserApi {
             case Some(at) => {
               val sa = SocialAccount.create(provider, at)
               sa match {
-                case Some(s) => (R.USER_LOGIN, s.user.get.asLoginMap)
-                case _ => throw(new InvalidSocialCredentialsException())
+                case Some(s) => MapResponse(R.USER_LOGIN, s.user.get.asLoginMap)
+                case _ => ExceptionResponse(new InvalidSocialCredentialsException())
               }
             }
-            case _ => throw(new MissingSocialAccessTokenException())
+            case _ => ExceptionResponse(new MissingSocialAccessTokenException())
           }
         }
       }
-    })
+    }
   }
 }
 
@@ -295,20 +282,20 @@ class UserLoginWithProvider extends UserApi {
 )
 class GeneratePasswordResetcode extends UserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       User.getByEmail(param[String]("email")) match {
         case Some(u) => {
           //make sure they have an 'identity' account
           if (u.hasIdentityAccount) {
             //need to send an email here
-            (R.OK, Map("reset_code" -> User.generateResetCode(u.id)))
+            MapResponse(R.OK, Map("reset_code" -> User.generateResetCode(u.id)))
           } else {
-            throw(new UserAccountMissingIdentityException())
+            ExceptionResponse(new UserAccountMissingIdentityException())
           }
         }
-        case _ => throw(new NoUserException())
+        case _ => ExceptionResponse(new NoUserException())
       }
-    })
+    }
   }
 }
 
@@ -322,11 +309,11 @@ class GeneratePasswordResetcode extends UserApi {
 )
 class ResetPassword extends UserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       val u = User.resetPassword(param[String]("code"),
                                  param[String]("password"))
-      (R.OK, u.asLoginMap)
-    })
+      MapResponse(R.OK, u.asLoginMap)
+    }
   }
 }
 
@@ -351,7 +338,7 @@ class ResetPassword extends UserApi {
 )
 class UpdateUserProfile extends AuthorizedUserApi {
   def execute(): Unit = {
-    futureExecute(() => {
+    render {
       user match {
         case Some(u) => {
           val email = paramo("email") match {
@@ -439,12 +426,12 @@ class UpdateUserProfile extends AuthorizedUserApi {
           }
 
           profile match {
-            case Some(p) => (R.OK, u.asMap)
-            case _ => throw(new CreateOrUpdateFailedException(message = "The profile cannot be updated"))
+            case Some(p) => MapResponse(R.OK, u.asMap)
+            case _ => ExceptionResponse(new CreateOrUpdateFailedException(message = "The profile cannot be updated"))
           }
         }
-        case _ => throw(new UnauthorizedException())
+        case _ => ExceptionResponse(new UnauthorizedException())
       }
-    })
+    }
   }
 }

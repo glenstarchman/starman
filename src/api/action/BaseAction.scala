@@ -9,7 +9,11 @@ import java.util.HashMap
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.{Success, Failure}
+import scala.concurrent.duration._
+import akka.actor.{Actor, ActorSystem}
+import akka.pattern.after
 import scala.language.implicitConversions
+import scala.concurrent.ExecutionContext
 import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.HttpResponseStatus
 import xitrum.{Action, FutureAction, WebSocketAction}
@@ -37,7 +41,7 @@ trait BaseWebsocketAction extends WebSocketAction with Log {
 
 }
 
-trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
+trait BaseAction extends Action with Log with SkipCsrfCheck {
 
   implicit val formats = Serialization.formats(NoTypeHints)
 
@@ -107,7 +111,7 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
 
   lazy val userAgent = request.headers.get("user-agent") match {
     case ua: String => ua
-    case _ => "Netscape"
+    case _ => "Unknown UA"
   }
 
   lazy val isBot = paramo("is_bot") match {
@@ -143,9 +147,10 @@ trait BaseAction extends FutureAction with Log with SkipCsrfCheck {
   def meta = Map(
     "start" -> startTimestamp,
     "end" -> System.currentTimeMillis,
-    "executionTime" -> (startTimestamp - System.currentTimeMillis),
+    //"executionTime" -> (startTimestamp - System.currentTimeMillis),
     "params" -> textParams.map(x => x._1 -> x._2.head),
-    "requestUser" -> userAsMap
+    "requestUser" -> userAsMap,
+    "userAgent" -> userAgent
   )
 
   private[this] def buildPartialResult[T <: StatusCode](status: T) = Map(
@@ -249,22 +254,18 @@ trait MustacheAction extends BaseAction {
 /* handles JSON and JSONP responses */
 trait JsonAction extends BaseAction with SkipCsrfCheck {
 
-  def futureExecute(callback: () => Any): Unit = {
-    val future = Future { callback() }
+  //uses the EC from Xitrum
+  def render(callback: =>  StarmanResponse)(implicit ev: ExecutionContext): Unit = {
+    val future = Future { callback }
     future onComplete {
-      case Success((code: StatusCode, result: Any)) => {
+      case Success(result: StarmanResponse) => {
         result match {
-          case r: Map[_, _] => respond(code, r.asInstanceOf[MapAny])
-          case r: List[_] => respond(code, r.asInstanceOf[List[MapAny]])
-          case r: Convertable => respond(code, r.asMap)
-          //result is unknown so throw a ResponseException
-          case _ => respondException(new ResponseException)
+          case r @ (MapResponse(_,_) | ListResponse(_,_) | ExceptionResponse(_)) => respond(r)
+          //case ListResponse(s,l) => respond(s,l)
+          case r @ (_: FutureResponse) => r.channelFuture
         }
       }
-      case Success(f: io.netty.channel.ChannelFuture) =>  f
-      // is not a Tiple2(StatusCode, [List|Map]) or ChannelFuture.. should not happen
-      case Success(f: Any) => respondException(new ResponseException)
-      case Failure(ex) => respondException(ex)
+      case Failure(ex) => respond(ExceptionResponse(ex))
     }
   }
 
@@ -368,22 +369,28 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
         raygun.Send(e, tags, custom)
       }
     }
-
     //set the underlying HTTP response code
     response.setStatus(responseCode)
-    respond(starmanCode, message)
+    (starmanCode, message)
   }
 
-  def respond[T <: StatusCode](status: T, result: MapAny) = paramo("callback") match {
-    case Some(cb) => respondJsonP(buildResult(status, result), cb)
-    case _ => respondJson(buildResult(status, result))
-  }
+  def respond[T <: StarmanResponse](response: T) = {
+    val r = response match {
+      case MapResponse(s,r) => buildResult(s,r)
+      case ListResponse(s,r) => buildResult(s,r)
+      case FutureResponse(r) => r
+      case ExceptionResponse(ex) => {
+        val x = respondException(ex)
+        buildResult(x._1, x._2)
+      }
+      case _ => respondException(new ResponseException)
+    }
 
-  def respond[T <: StatusCode](status: T, result: List[MapAny]) = paramo("callback") match {
-    case Some(cb) => respondJsonP(buildResult(status, result), cb)
-    case _ => respondJson(buildResult(status, result))
+    paramo("callback") match {
+      case Some(cb) => respondJsonP(r, cb)
+      case _ => respondJson(r)
+    }
   }
-
 }
 
 /* version of BaseAction that requires authorization */

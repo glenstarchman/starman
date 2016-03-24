@@ -6,6 +6,7 @@ package starman.api.action
 
 import xitrum.annotation.GET
 import starman.common.helpers.FileReader
+import starman.common.Types._
 
 @GET("", "index", "app")
 class IndexAction extends BaseAction {
