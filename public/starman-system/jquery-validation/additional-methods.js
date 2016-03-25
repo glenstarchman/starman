@@ -1,0 +1,1 @@
+../../../bower_components/jquery-validation/dist/additional-methods.js

@@ -1,0 +1,27 @@
+{
+  "name": "starman",
+  "homepage": "https://github.com/glenstarchman/starman",
+  "authors": [
+    "Glen Starchman <glen@starchman.com>"
+  ],
+  "description": "Starman REST Framework",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "^3.5.16",
+    "jquery": "^2.2.2",
+    "jquery-validation": "^1.15.0",
+    "sockjs-client": "^1.0.3",
+    "swagger-ui": "^2.1.4",
+    "bootstrap": "^3.3.6"
+  }
+}

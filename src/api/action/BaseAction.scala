@@ -261,11 +261,10 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
       case Success(result: StarmanResponse) => {
         result match {
           case r @ (MapResponse(_,_) | ListResponse(_,_) | ExceptionResponse(_)) => respond(r)
-          //case ListResponse(s,l) => respond(s,l)
           case r @ (_: FutureResponse) => r.channelFuture
         }
       }
-      case Failure(ex) => respond(ExceptionResponse(ex))
+      case Failure(ex) => render(ExceptionResponse(ex))
     }
   }
 
