@@ -336,7 +336,6 @@ object Config {
   /** This represents things in xitrum.conf. */
   val xitrum: XitrumConfig = {
     try {
-      println(application.entrySet)
       new XitrumConfig(application.getConfig("xitrum"))
     } catch {
       case NonFatal(e) =>
