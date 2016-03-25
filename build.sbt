@@ -83,8 +83,9 @@ def generateVersionFile = Def.task {
   val base     = (baseDirectory in Compile).value
 
   // Also check if the directory name is correct
-  val resDir = base / s"src/resources/META-INF/resources/webjars"
-  if (!resDir.exists) throw new Exception(s"Directory name incorrect: $resDir")
+  //we don't use resources any more
+  //val resDir = base / s"src/resources/META-INF/resources/webjars"
+  //if (!resDir.exists) throw new Exception(s"Directory name incorrect: $resDir")
 
   // Do not overwrite version file if its content doesn't change
   val file    = base / "src/xitrum/Version.scala"

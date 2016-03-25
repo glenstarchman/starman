@@ -17,6 +17,7 @@ import scala.concurrent.ExecutionContext
 import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.HttpResponseStatus
 import xitrum.{Action, FutureAction, WebSocketAction}
+import xitrum.action.Net
 import xitrum.view.ScalateEngine
 import xitrum.SkipCsrfCheck
 import org.json4s._
@@ -36,14 +37,19 @@ import starman.data.models.{User, FriendlyId}
 import starman.common.StarmanConfig
 import starman.common.Types._
 import starman.common.exceptions._
+import starman.common.helpers.{Hasher, TokenGenerator}
 
 trait BaseWebsocketAction extends WebSocketAction with Log {
 
 }
 
-trait BaseAction extends Action with Log with SkipCsrfCheck {
+trait BaseAction extends Action with Net with Log with SkipCsrfCheck {
 
   implicit val formats = Serialization.formats(NoTypeHints)
+
+  lazy val requestId = TokenGenerator.generate(32)
+  lazy val requestIp = Net.clientIp(channel.remoteAddress)
+  lazy val requestToken = Hasher.md5(requestId, requestIp)
 
   lazy val buildInfo = BuildInfo.toMap
   lazy val infoMap = buildInfo.map{ case (k,v) => k -> v.toString }
@@ -145,9 +151,12 @@ trait BaseAction extends Action with Log with SkipCsrfCheck {
   implicit def sc2map[T <: StatusCode](sc: T): MapAny = sc.asMap
 
   def meta = Map(
+    "requestId" -> requestId,
+    "requestToken" -> requestToken,
+    "requestIp" -> requestIp,
     "start" -> startTimestamp,
     "end" -> System.currentTimeMillis,
-    //"executionTime" -> (startTimestamp - System.currentTimeMillis),
+    "executionTime" -> (System.currentTimeMillis - startTimestamp),
     "params" -> textParams.map(x => x._1 -> x._2.head),
     "requestUser" -> userAsMap,
     "userAgent" -> userAgent
