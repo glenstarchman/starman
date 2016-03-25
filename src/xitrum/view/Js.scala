@@ -64,15 +64,15 @@ trait Js {
   //----------------------------------------------------------------------------
 
   lazy val jsDefaults = {
-    val validatei18n = if (language == "en") "" else (<script type="text/javascript" src={webJarsUrl("jquery-validation/1.14.0/localization", s"messages_${language}.js", s"messages_${language}.min.js")}></script>)
+    val validatei18n = if (language == "en") "" else (<script type="text/javascript" src={webJarsUrl("jquery-validation/localization", s"messages_${language}.js", s"messages_${language}.min.js")}></script>)
 
     <xml:group>
-      <script type="text/javascript" src={webJarsUrl("jquery/2.1.4",              "jquery.js",             "jquery.min.js")}></script>
-      <script type="text/javascript" src={webJarsUrl("jquery-validation/1.14.0",  "jquery.validate.js",    "jquery.validate.min.js")}></script>
-      <script type="text/javascript" src={webJarsUrl("jquery-validation/1.14.0",  "additional-methods.js", "additional-methods.min.js")}></script>
+      <script type="text/javascript" src={webJarsUrl("jquery/",              "jquery.js",             "jquery.min.js")}></script>
+      <script type="text/javascript" src={webJarsUrl("jquery-validation/",  "jquery.validate.js",    "jquery.validate.min.js")}></script>
+      <script type="text/javascript" src={webJarsUrl("jquery-validation/",  "additional-methods.js", "additional-methods.min.js")}></script>
       {validatei18n}
-      <script type="text/javascript" src={webJarsUrl("sockjs-client/1.0.3/dist",  "sockjs-1.0.3.js",       "sockjs-1.0.3.min.js")}></script>
-      <script type="text/javascript" src={url[xitrum.js]}></script>
+      <script type="text/javascript" src={webJarsUrl("sockjs-client/",  "sockjs-1.0.3.js",       "sockjs-1.0.3.min.js")}></script>
+      <script type="text/javascript" src={webJarsUrl("xitrum", "xitrum.js", "xitrum.js")}></script>
     </xml:group>
   }
 }

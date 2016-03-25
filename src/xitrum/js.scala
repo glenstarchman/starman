@@ -153,7 +153,7 @@ $(function() {
 
 /** To innclude xitrum.js in your view, use: url[xitrum.js]. */
 @First
-@GET("xitrum/xitrum.js")
+@GET("starman-system/xitrum/xitrum.js")
 class js extends FutureAction {
   def execute() {
     setClientCacheAggressively()  // See Url#url[xitrum.js]

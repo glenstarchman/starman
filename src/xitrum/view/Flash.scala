@@ -62,5 +62,5 @@ trait Flash {
   }
 
   lazy val xitrumCss =
-    <link href={webJarsUrl(s"xitrum/${xitrum.version}/xitrum.css")} type="text/css" rel="stylesheet" media="all" />
+    <link href={webJarsUrl(s"xitrum/xitrum.css")} type="text/css" rel="stylesheet" media="all" />
 }

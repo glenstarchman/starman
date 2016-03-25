@@ -72,12 +72,16 @@ trait Url {
 
   /** @param path Use "myapp/foo.js" to specify "META-INF/resources/webjars/myapp/foo.js" */
   def webJarsUrl(path: String): String = {
+    publicUrl(s"starman-system/${path}")
+    /*
     val classPathPath = "/starman-system/" + path
+    Config.withBaseUrl(("/starman-systerm))
     val forceReload = Etag.forResource(classPathPath, None, true) match {
       case Etag.NotFound                           => Random.nextLong.toString
       case Etag.Small(bytes, etag, mimeo, gzipped) => etag
     }
     Config.withBaseUrl("/starman-system/" + path + "?" + forceReload)
+     */
   }
 
   /**
