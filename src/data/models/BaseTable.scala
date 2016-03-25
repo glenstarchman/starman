@@ -20,7 +20,7 @@ trait NonKeyedBaseStarmanTable extends Convertable
 
 trait Adminable extends BaseStarmanTable {
 
-  private[this] def prettyType(s: String) = s.split('.').toList.last.toLowerCase 
+  private[this] def prettyType(s: String) = s.split('.').toList.last.toLowerCase
   private[this] def prettyName(s: String) = Text.titleize(s)
 
   private[this] def getHtmlType(s: String) = {
@@ -33,22 +33,22 @@ trait Adminable extends BaseStarmanTable {
   }
 
   def getHtmlFieldMappings () = {
-    val m = Mapper.ccToMap(this) 
+    val m = Mapper.ccToMap(this)
     val fields = getClass.getDeclaredFields
     fields
       .filter(f => f.getName != "_isPersisted")
-      .map(f => 
+      .map(f =>
         f.getName -> Map(
-          "prettyName" -> prettyName(f.getName), 
+          "prettyName" -> prettyName(f.getName),
           "type" -> prettyType(f.getType.toString),
-          "value" -> m(f.getName) 
+          "value" -> m(f.getName)
         )
-      ).toMap 
+      ).toMap
   }
 
   def buildHtmlEditFields() = {
     val fields = getHtmlFieldMappings
-    fields.map { case (name, o) => { 
+    fields.map { case (name, o) => {
       val value = xml.Utility.escape(o.getOrElse("value", "").toString)
       o("type") match {
         case _ => s"<input type='text' id='${name}' value='${value}'"
@@ -59,7 +59,7 @@ trait Adminable extends BaseStarmanTable {
 
   def buildHtmlViewFields() = {
     val fields = getHtmlFieldMappings
-    fields.map { case (name, o) => { 
+    fields.map { case (name, o) => {
       val value = xml.Utility.escape(o.getOrElse("value", "").toString)
       o("type") match {
         case _ => s"<span class='data-view' id='${name}'>${value}</span>"
@@ -71,12 +71,11 @@ trait Adminable extends BaseStarmanTable {
 
 trait BaseStarmanTableWithTimestamps extends BaseStarmanTable with Adminable {
   var id: Long
-  var createdAt: Timestamp 
-  var updatedAt: Timestamp 
+  var createdAt: Timestamp
+  var updatedAt: Timestamp
 
   def modelName = getClass.getName.split('.').last
   def baseKey = s"${modelName}:${id}"
-
 }
 
 trait FriendlyIdable extends BaseStarmanTableWithTimestamps {
@@ -102,18 +101,13 @@ trait FriendlyIdable extends BaseStarmanTableWithTimestamps {
   }
 }
 
-/* a Trait for all models that have a parent project.... 
-   this automagically updates the project's `updatedAt` 
-   on save
-*/
-
 trait NonKeyedBaseStarmanTableWithTimestamps extends NonKeyedBaseStarmanTable {
   var createdAt: Timestamp
   var updatedAt: Timestamp
 }
 
 /* singletons for models. extends the base model */
-trait CompanionTable[T <: BaseStarmanTableWithTimestamps] {
+trait CompanionTable[M <: BaseStarmanTableWithTimestamps] {
 
   lazy val modelName = this.getClass.getName.split('.').last.replace("$", "")
   lazy val model = lookup(modelName)
@@ -121,12 +115,12 @@ trait CompanionTable[T <: BaseStarmanTableWithTimestamps] {
   private def cacheKey(id: Long) = s"${modelName}:${id.toString}"
 
   /* simple helpers based on primary key */
-  def get(id: Long): Option[T] = { 
+  def get(id: Long): Option[M] = {
     fetchOne {
-      from(model)(m => 
+      from(model)(m =>
       where(m.id === id)
       select(m))
-    }.asInstanceOf[Option[T]]
+    }.asInstanceOf[Option[M]]
   }
 
   def delete(id: Long) = {
@@ -150,5 +144,6 @@ trait CompanionTable[T <: BaseStarmanTableWithTimestamps] {
     }
   }
 }
+
 
 trait LoggableCompanionTable[T <: BaseStarmanTableWithTimestamps] extends CompanionTable[T]

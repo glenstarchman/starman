@@ -28,19 +28,18 @@ case class Profile(var id: Long = 0,
 
 object Profile extends CompanionTable[Profile] {
 
-
-  def getForUser(user: Long) = fetchOne { 
-    from(Profiles)(p => 
+  def getForUser(user: Long) = fetchOne {
+    from(Profiles)(p =>
     where(p.userId === user)
     select(p))
   }
 
   /* Profile.create will update the profile if it exists */
-  def createOrUpdate(userId: Long, firstName: String, lastName: String, 
+  def createOrUpdate(userId: Long, firstName: String, lastName: String,
                      tagline: String="", bio: String = "",
                      profilePicture: String = "", location: String = "") = {
 
-    val _p = getForUser(userId) 
+    val _p = getForUser(userId)
     val profile = _p match {
       case Some(p) => {
         //doing an update
@@ -55,7 +54,7 @@ object Profile extends CompanionTable[Profile] {
 
       case _ => {
         Profile(userId = userId, firstName = firstName, lastName = lastName,
-                tagline = tagline, bio = bio, 
+                tagline = tagline, bio = bio,
                 profilePicture = profilePicture, location = location)
       }
     }
@@ -71,4 +70,3 @@ object Profile extends CompanionTable[Profile] {
   }
 
 }
-

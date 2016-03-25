@@ -24,7 +24,7 @@ class LruCache extends Cache {
     // Use Int for expireAtSec, not Long, because we only need second precision,
     // not millisenod precision:
     //            key   expireAtSec value
-    LocalLruCache[Any, (Int,        Any)](maxElems)
+    LocalLruCache[Any, (Int, Any)](maxElems)
   }
 
   def start() {}

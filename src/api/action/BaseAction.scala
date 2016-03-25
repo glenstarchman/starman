@@ -47,10 +47,8 @@ trait BaseAction extends Action with Net with Log with SkipCsrfCheck {
 
   implicit val formats = Serialization.formats(NoTypeHints)
 
-  lazy val requestId = TokenGenerator.generate(32)
-  lazy val requestIp = Net.clientIp(channel.remoteAddress)
-  lazy val requestToken = Hasher.md5(requestId, requestIp)
-
+  lazy val accessTokenHeaderKey = StarmanConfig.get[String]("starman.access_token_header_key")
+  lazy val accessTokenQueryKey = StarmanConfig.get[String]("starman.access_token_query_key")
   lazy val buildInfo = BuildInfo.toMap
   lazy val infoMap = buildInfo.map{ case (k,v) => k -> v.toString }
   lazy val raygun = new RaygunClient(StarmanConfig.get[String]("raygun.api_key"))
@@ -99,11 +97,11 @@ trait BaseAction extends Action with Net with Log with SkipCsrfCheck {
 
   /* attempt to pull out a User from an access token */
   lazy val user  = {
-    val at = paramo("at") match {
+    val at = paramo(accessTokenQueryKey) match {
       case Some(a) => {
         Option(a)
       }
-      case _ => request.headers.get("X-MAIDEN-AT") match {
+      case _ => request.headers.get(accessTokenHeaderKey) match {
         case c: String => Option(c)
         case _ => None
       }
@@ -114,6 +112,15 @@ trait BaseAction extends Action with Net with Log with SkipCsrfCheck {
       case _ => None
     }
   }
+
+  lazy val requestId = user match {
+    case Some(u) => u.accessToken
+    case _ => TokenGenerator.generate
+  }
+
+  lazy val requestIp = Net.remoteIp(channel.remoteAddress, request)
+  lazy val requestToken = Hasher.md5(requestId, requestIp)
+
 
   lazy val userAgent = request.headers.get("user-agent") match {
     case ua: String => ua
