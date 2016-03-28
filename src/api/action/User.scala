@@ -23,7 +23,7 @@ trait UserApi extends JsonAction
 @Swagger(
   Swagger.Tags("User/Profile", "Needs Authentication"),
   Swagger.Produces("application/json"),
-  Swagger.StringHeader("X-MAIDEN-AT", "Access Token")
+  Swagger.StringHeader("X-STARMAN-AT", "Access Token")
 )
 trait AuthorizedUserApi extends AuthorizedJsonAction
 
@@ -37,20 +37,19 @@ trait AuthorizedUserApi extends AuthorizedJsonAction
   Swagger.IntPath("id", "the user id to retrieve")
 )
 class UserInfo extends UserApi with TrackableView {
-  def execute(): Unit = {
-    render {
-      val id = param("id")
-      val userData = UserHelper.getAsMap(id)
-      userData match {
-        case Some(user) => {
-          if (user("deactivated").toString.toBoolean) {
-            ExceptionResponse(new NoUserException)
-          } else {
-            MapResponse(R.OK, user)
-          }
+
+  render {
+    val id = param("id")
+    val userData = UserHelper.getAsMap(id)
+    userData match {
+      case Some(user) => {
+        if (user("deactivated").toString.toBoolean) {
+          ExceptionResponse(new NoUserException)
+        } else {
+          MapResponse(R.OK, user)
         }
-        case _ => ExceptionResponse(new NoUserException)
       }
+      case _ => ExceptionResponse(new NoUserException)
     }
   }
 }
@@ -65,15 +64,13 @@ class UserInfo extends UserApi with TrackableView {
   Swagger.IntPath("uuid", "The device UUID")
 )
 class UserAddDevice extends AuthorizedUserApi {
-  def execute(): Unit = {
-    render {
-      val userId = user.get.id
-      val token = param[String]("token")
-      val deviceType = param[String]("device_type")
-      val uuid = param[String]("uuid")
-      val n = Notification.create(userId, token, deviceType, uuid)
-      MapResponse(R.OK, n.asMap)
-    }
+  render {
+    val userId = user.get.id
+    val token = param[String]("token")
+    val deviceType = param[String]("device_type")
+    val uuid = param[String]("uuid")
+    val n = Notification.create(userId, token, deviceType, uuid)
+    MapResponse(R.OK, n.asMap)
   }
 }
 
@@ -87,44 +84,42 @@ class UserAddDevice extends AuthorizedUserApi {
   Swagger.OptIntQuery("end", "Timestamp to end on")
 )
 class UserActivity extends UserApi {
-  def execute(): Unit = {
-    render {
-      val id = param("id") match {
-        case "self" => {
-          user match {
-            case Some(u) => u.id
-            case _ => throw(new NoUserException())
-          }
-        }
-        case _ => {
-          UserHelper.getId(param("id")) match {
-            case 0l => throw(new NoUserException())
-            case x: Long => x
-          }
+  render {
+    val id = param("id") match {
+      case "self" => {
+        user match {
+          case Some(u) => u.id
+          case _ => throw(new NoUserException())
         }
       }
-      val requestorId = user match {
-        case Some(u) => u.id
-        case _ => 0l
+      case _ => {
+        UserHelper.getId(param("id")) match {
+          case 0l => throw(new NoUserException())
+          case x: Long => x
+        }
       }
-      val start = paramo("start") match {
-        case Some(x) => Option(new java.sql.Timestamp(x.toString.toLong))
-        case _ => None
-      }
-      val end = paramo("end") match {
-        case Some(x) => Option(new java.sql.Timestamp(x.toString.toLong))
-        case _ => None
-      }
-
-      /*
-      val activity = if (requestorId == id) {
-        ActivityStream.getForSelf(id, start, end)
-      } else {
-        ActivityStream.getForUser(id, start, end)
-      }
-      */
-      ListResponse(R.OK, ActivityStream.getForUser(id, start, end))
     }
+    val requestorId = user match {
+      case Some(u) => u.id
+      case _ => 0l
+    }
+    val start = paramo("start") match {
+      case Some(x) => Option(new java.sql.Timestamp(x.toString.toLong))
+      case _ => None
+    }
+    val end = paramo("end") match {
+      case Some(x) => Option(new java.sql.Timestamp(x.toString.toLong))
+      case _ => None
+    }
+
+    /*
+    val activity = if (requestorId == id) {
+      ActivityStream.getForSelf(id, start, end)
+    } else {
+      ActivityStream.getForUser(id, start, end)
+    }
+    */
+    ListResponse(R.OK, ActivityStream.getForUser(id, start, end))
   }
 }
 
@@ -136,17 +131,15 @@ class UserActivity extends UserApi {
   Swagger.StringQuery("accessToken", "The access token to check")
 )
 class ValidateAccessToken extends UserApi {
-  def execute(): Unit = {
-    render {
-      paramo("accessToken") match {
-        case Some(at) => {
-          User.get(at) match {
-            case Some(user) => MapResponse(R.OK, Map("status" -> "The access token is valid"))
-            case _ => ExceptionResponse(new NoUserException())
-          }
+  render {
+    paramo("accessToken") match {
+      case Some(at) => {
+        User.get(at) match {
+          case Some(user) => MapResponse(R.OK, Map("status" -> "The access token is valid"))
+          case _ => ExceptionResponse(new NoUserException())
         }
-        case _ => ExceptionResponse(new MissingParameterException("The parameter `accessToken` is required"))
       }
+      case _ => ExceptionResponse(new MissingParameterException("The parameter `accessToken` is required"))
     }
   }
 }
@@ -159,11 +152,9 @@ class ValidateAccessToken extends UserApi {
   Swagger.Summary("Get a user's settings")
 )
 class UserSettings extends AuthorizedUserApi {
-  def execute(): Unit = {
-    render {
-      val settings = Setting.getForUser(user.get.id).map(_.asMap)
-      ListResponse(R.OK, settings)
-    }
+  render {
+    val settings = Setting.getForUser(user.get.id).map(_.asMap)
+    ListResponse(R.OK, settings)
   }
 }
 
@@ -176,11 +167,9 @@ class UserSettings extends AuthorizedUserApi {
   Swagger.StringPath("value", "The setting's value")
 )
 class UserUpdateSettings extends AuthorizedUserApi {
-  def execute(): Unit = {
-    render {
-      val s = Setting.createOrUpdate(user.get.id, param[String]("name"), param[String]("value"))
-      MapResponse(R.OK, s.asMap)
-    }
+  render {
+    val s = Setting.createOrUpdate(user.get.id, param[String]("name"), param[String]("value"))
+    MapResponse(R.OK, s.asMap)
   }
 }
 
@@ -196,33 +185,31 @@ class UserUpdateSettings extends AuthorizedUserApi {
   Swagger.StringQuery("lastName", "last name")
 )
 class UserCreateAccount extends UserApi {
-  def execute(): Unit = {
-    render {
-      //val userName = User.validateUserName(param[String]("username"))
-      val firstName = param[String]("firstName")
-      val lastName = param[String]("lastName")
-      val userName = FriendlyId.generateForUserName(s"${firstName}.${lastName}")
-      val password = User.validatePassword(param[String]("password"))
-      val email = User.validateEmail(param[String]("email"))
+  render {
+    //val userName = User.validateUserName(param[String]("username"))
+    val firstName = param[String]("firstName")
+    val lastName = param[String]("lastName")
+    val userName = FriendlyId.generateForUserName(s"${firstName}.${lastName}")
+    val password = User.validatePassword(param[String]("password"))
+    val email = User.validateEmail(param[String]("email"))
 
-      val u = User.createIdentity(
-                userName = userName,
-                password = password,
-                email = email
-      )
+    val u = User.createIdentity(
+              userName = userName,
+              password = password,
+              email = email
+    )
 
-      u match {
-        case Some(user) => {
-          val p = Profile.createOrUpdate(
-            userId = user.id,
-            firstName = firstName,
-            lastName = lastName,
-            profilePicture = "https://s3-us-west-2.amazonaws.com/starman-ventures/default/default_user.jpg"
-          )
-          MapResponse(R.OK, user.asLoginMap)
-        }
-        case _ => ExceptionResponse(new CreateOrUpdateFailedException(message="Unable to create user"))
+    u match {
+      case Some(user) => {
+        val p = Profile.createOrUpdate(
+          userId = user.id,
+          firstName = firstName,
+          lastName = lastName,
+          profilePicture = "https://s3-us-west-2.amazonaws.com/starman-ventures/default/default_user.jpg"
+        )
+        MapResponse(R.OK, user.asLoginMap)
       }
+      case _ => ExceptionResponse(new CreateOrUpdateFailedException(message="Unable to create user"))
     }
   }
 }
@@ -238,35 +225,33 @@ class UserCreateAccount extends UserApi {
   Swagger.OptStringQuery("password", "The password for the user (identity only)")
 )
 class UserLoginWithProvider extends UserApi {
-  def execute(): Unit = {
-    render {
-      val provider = paramo("provider") match {
-        case Some(x) => x
-        case _ => ""
+  render {
+    val provider = paramo("provider") match {
+      case Some(x) => x
+      case _ => ""
+    }
+
+    provider match {
+      case "identity" => {
+        val username = (paramo("username") getOrElse "").toString
+        val password = (paramo("password") getOrElse "").toString
+        val u = User.checkLogin(username, password)
+        u match {
+          case Some(x) => MapResponse(R.USER_LOGIN, x.asLoginMap)
+          case _ => MapResponse(R.INVALID_LOGIN_CREDENTIALS, EmptyResult)
+        }
       }
 
-      provider match {
-        case "identity" => {
-          val username = (paramo("username") getOrElse "").toString
-          val password = (paramo("password") getOrElse "").toString
-          val u = User.checkLogin(username, password)
-          u match {
-            case Some(x) => MapResponse(R.USER_LOGIN, x.asLoginMap)
-            case _ => MapResponse(R.INVALID_LOGIN_CREDENTIALS, EmptyResult)
-          }
-        }
-
-        case _ => {
-          paramo("token") match {
-            case Some(at) => {
-              val sa = SocialAccount.create(provider, at)
-              sa match {
-                case Some(s) => MapResponse(R.USER_LOGIN, s.user.get.asLoginMap)
-                case _ => ExceptionResponse(new InvalidSocialCredentialsException())
-              }
+      case _ => {
+        paramo("token") match {
+          case Some(at) => {
+            val sa = SocialAccount.create(provider, at)
+            sa match {
+              case Some(s) => MapResponse(R.USER_LOGIN, s.user.get.asLoginMap)
+              case _ => ExceptionResponse(new InvalidSocialCredentialsException())
             }
-            case _ => ExceptionResponse(new MissingSocialAccessTokenException())
           }
+          case _ => ExceptionResponse(new MissingSocialAccessTokenException())
         }
       }
     }
@@ -281,20 +266,18 @@ class UserLoginWithProvider extends UserApi {
     Swagger.StringQuery("email", "The email address for the user")
 )
 class GeneratePasswordResetcode extends UserApi {
-  def execute(): Unit = {
-    render {
-      User.getByEmail(param[String]("email")) match {
-        case Some(u) => {
-          //make sure they have an 'identity' account
-          if (u.hasIdentityAccount) {
-            //need to send an email here
-            MapResponse(R.OK, Map("reset_code" -> User.generateResetCode(u.id)))
-          } else {
-            ExceptionResponse(new UserAccountMissingIdentityException())
-          }
+  render {
+    User.getByEmail(param[String]("email")) match {
+      case Some(u) => {
+        //make sure they have an 'identity' account
+        if (u.hasIdentityAccount) {
+          //need to send an email here
+          MapResponse(R.OK, Map("reset_code" -> User.generateResetCode(u.id)))
+        } else {
+          ExceptionResponse(new UserAccountMissingIdentityException())
         }
-        case _ => ExceptionResponse(new NoUserException())
       }
+      case _ => ExceptionResponse(new NoUserException())
     }
   }
 }
@@ -308,12 +291,10 @@ class GeneratePasswordResetcode extends UserApi {
     Swagger.StringQuery("password", "The new password")
 )
 class ResetPassword extends UserApi {
-  def execute(): Unit = {
-    render {
-      val u = User.resetPassword(param[String]("code"),
-                                 param[String]("password"))
-      MapResponse(R.OK, u.asLoginMap)
-    }
+  render {
+    val u = User.resetPassword(param[String]("code"),
+                                param[String]("password"))
+    MapResponse(R.OK, u.asLoginMap)
   }
 }
 
@@ -337,101 +318,99 @@ class ResetPassword extends UserApi {
   Swagger.OptStringQuery("password", "The user's new password")
 )
 class UpdateUserProfile extends AuthorizedUserApi {
-  def execute(): Unit = {
-    render {
-      user match {
-        case Some(u) => {
-          val email = paramo("email") match {
-            case Some(e) => User.validateEmail(e)
-            case _ => None
-          }
-
-          val username = paramo("username") match {
-            case Some(u) => User.validateUserName(u)
-            case _ => None
-          }
-
-          val password = paramo("password") match {
-            case Some(p) => User.validatePassword(p)
-            case _ => None
-          }
-
-          val profile = Profile.createOrUpdate(
-            userId = u.id,
-            firstName = paramo("firstName").getOrElse(""),
-            lastName = paramo("lastName").getOrElse(""),
-            tagline = paramo("tagline").getOrElse(""),
-            bio = paramo("bio").getOrElse(""),
-            profilePicture = paramo("profilePicture").getOrElse(""),
-            location = paramo("location").getOrElse("")
-          )
-
-          val sa = u.getIdentityAccount match {
-            case Some(sa) => sa
-            case _ => null
-          }
-
-          email match {
-            case Some(email) => {
-              u.email = email.toString
-              if (sa != null) sa.uid = email.toString
-            }
-            case _ => ()
-          }
-
-          username match {
-            case Some(username) => {
-              u.userName = username.toString
-              if (sa != null) sa.accessToken = username.toString
-            }
-            case _ => ()
-          }
-
-          password match {
-            case Some(password) => {
-              val hashedPass = User.hashPassword(username.toString)
-              u.password = hashedPass
-              if (sa != null) {
-                sa.secretKey = hashedPass
-              }
-            }
-            case _ => ()
-          }
-
-          paramo("deactivate") match {
-            case Some(d) if d == "t" => u.deactivated = true
-            case Some(d) if d == "f" => u.deactivated = false
-            case _ => ()
-          }
-
-          paramo("private") match {
-            case Some(p) if p == "t" => u.`private` = true
-            case Some(p) if p == "f" => u.`private` = false
-            case _ => ()
-          }
-
-          paramo("contactable") match {
-            case Some(c) if c == "t" => u.contactable = true
-            case Some(c) if c == "f" => u.contactable = false
-            case _ => ()
-          }
-
-          withTransaction {
-            val user = Users.upsert(u)
-            FriendlyId.generate("User", u.id, u.userName)
-            if (sa != null) {
-              SocialAccounts.upsert(sa)
-            }
-            user
-          }
-
-          profile match {
-            case Some(p) => MapResponse(R.OK, u.asMap)
-            case _ => ExceptionResponse(new CreateOrUpdateFailedException(message = "The profile cannot be updated"))
-          }
+  render {
+    user match {
+      case Some(u) => {
+        val email = paramo("email") match {
+          case Some(e) => User.validateEmail(e)
+          case _ => None
         }
-        case _ => ExceptionResponse(new UnauthorizedException())
+
+        val username = paramo("username") match {
+          case Some(u) => User.validateUserName(u)
+          case _ => None
+        }
+
+        val password = paramo("password") match {
+          case Some(p) => User.validatePassword(p)
+          case _ => None
+        }
+
+        val profile = Profile.createOrUpdate(
+          userId = u.id,
+          firstName = paramo("firstName").getOrElse(""),
+          lastName = paramo("lastName").getOrElse(""),
+          tagline = paramo("tagline").getOrElse(""),
+          bio = paramo("bio").getOrElse(""),
+          profilePicture = paramo("profilePicture").getOrElse(""),
+          location = paramo("location").getOrElse("")
+        )
+
+        val sa = u.getIdentityAccount match {
+          case Some(sa) => sa
+          case _ => null
+        }
+
+        email match {
+          case Some(email) => {
+            u.email = email.toString
+            if (sa != null) sa.uid = email.toString
+          }
+          case _ => ()
+        }
+
+        username match {
+          case Some(username) => {
+            u.userName = username.toString
+            if (sa != null) sa.accessToken = username.toString
+          }
+          case _ => ()
+        }
+
+        password match {
+          case Some(password) => {
+            val hashedPass = User.hashPassword(username.toString)
+            u.password = hashedPass
+            if (sa != null) {
+              sa.secretKey = hashedPass
+            }
+          }
+          case _ => ()
+        }
+
+        paramo("deactivate") match {
+          case Some(d) if d == "t" => u.deactivated = true
+          case Some(d) if d == "f" => u.deactivated = false
+          case _ => ()
+        }
+
+        paramo("private") match {
+          case Some(p) if p == "t" => u.`private` = true
+          case Some(p) if p == "f" => u.`private` = false
+          case _ => ()
+        }
+
+        paramo("contactable") match {
+          case Some(c) if c == "t" => u.contactable = true
+          case Some(c) if c == "f" => u.contactable = false
+          case _ => ()
+        }
+
+        withTransaction {
+          val user = Users.upsert(u)
+          FriendlyId.generate("User", u.id, u.userName)
+          if (sa != null) {
+            SocialAccounts.upsert(sa)
+          }
+          user
+        }
+
+        profile match {
+          case Some(p) => MapResponse(R.OK, u.asMap)
+          case _ => ExceptionResponse(new CreateOrUpdateFailedException(message = "The profile cannot be updated"))
+        }
       }
+      case _ => ExceptionResponse(new UnauthorizedException())
     }
   }
 }

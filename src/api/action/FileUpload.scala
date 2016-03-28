@@ -21,42 +21,40 @@ trait UploadApi extends JsonAction
   Swagger.FileForm("file", "The file to upload")
 )
 class FileUploadAction extends UploadApi {
-  def execute() {
-    render {
-      val acceptedContentTypes = Map(
-        "image/gif" -> "gif",
-        "image/jpeg" -> "jpg",
-        "image/png" -> "png"
-      )
+  render {
+    val acceptedContentTypes = Map(
+      "image/gif" -> "gif",
+      "image/jpeg" -> "jpg",
+      "image/png" -> "png"
+    )
 
-      val fileUpload = try {
-        param[FileUpload]("file")
-      } catch {
-        case e: Exception => throw(new MissingParameterException(
-                                      message="`file` param is missing"))
-      }
-      val file = fileUpload.getFile
-      val ct = fileUpload.getContentType
-      val fn = fileUpload.getFilename
-      val bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
+    val fileUpload = try {
+      param[FileUpload]("file")
+    } catch {
+      case e: Exception => throw(new MissingParameterException(
+                                    message="`file` param is missing"))
+    }
+    val file = fileUpload.getFile
+    val ct = fileUpload.getContentType
+    val fn = fileUpload.getFilename
+    val bucket = StarmanConfig.get[String]("aws.s3.asset_bucket")
 
-      if (acceptedContentTypes.keySet.contains(ct)) {
-        val filename = RandomStringGenerator.generate(64) + "." + acceptedContentTypes(ct);
-        val remote = s"images/${filename}"
+    if (acceptedContentTypes.keySet.contains(ct)) {
+      val filename = RandomStringGenerator.generate(64) + "." + acceptedContentTypes(ct);
+      val remote = s"images/${filename}"
 
-        val f = AmazonS3.put(file, remote, bucket)
-        f match {
-          case Some(remoteFilename) => {
-            val r = Map(
-              "filename" -> remoteFilename
-            )
-            MapResponse(R.OK, r)
-          }
-          case _ => ExceptionResponse(new FileUploadFailedException())
+      val f = AmazonS3.put(file, remote, bucket)
+      f match {
+        case Some(remoteFilename) => {
+          val r = Map(
+            "filename" -> remoteFilename
+          )
+          MapResponse(R.OK, r)
         }
-      } else {
-        ExceptionResponse(new UnknownImageTypeException())
+        case _ => ExceptionResponse(new FileUploadFailedException())
       }
+    } else {
+      ExceptionResponse(new UnknownImageTypeException())
     }
   }
 }

@@ -17,7 +17,7 @@ object Migrate {
 
 
   //these are vars so they can be changed at runtime
-  var  namespace  = StarmanConfig.get[String]("db.migration_namespace")
+  var namespace  = StarmanConfig.get[String]("db.migration_namespace")
   var driver_class_name = StarmanConfig.get[String]("db.driver_class")
 
   lazy val migrator = {
@@ -84,7 +84,7 @@ object Migrate {
   }
 
   private def createTemplate(className: String) = {
-  s"""package starman.migrations
+  s"""package ${namespace}
 
 import com.imageworks.migration._
 

@@ -203,6 +203,9 @@ trait BaseAction extends Action with Net with Log with SkipCsrfCheck {
       respondText(s"Exception: ${message}")
     }
   }
+
+  def getParamThen[T, S](name: String, success: (S) => T, failure: => T) = {
+  }
 }
 
 trait TrackableView extends BaseAction {
@@ -270,7 +273,9 @@ trait MustacheAction extends BaseAction {
 /* handles JSON and JSONP responses */
 trait JsonAction extends BaseAction with SkipCsrfCheck {
 
+  def execute(): Unit = {}
   //uses the EC from Xitrum
+  //takes a method returning either a StarmanResponse or a Throwable
   def render(callback: =>  StarmanResponse)(implicit ev: ExecutionContext): Unit = {
     val future = Future { callback }
     future onComplete {
@@ -281,6 +286,8 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
         }
       }
       case Failure(ex) => render(ExceptionResponse(ex))
+      //completely unknown response
+      case _ => render(ExceptionResponse(new ResponseException))
     }
   }
 
@@ -389,8 +396,8 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
     (starmanCode, message)
   }
 
-  def respond[T <: StarmanResponse](response: T) = {
-    val r = response match {
+  def respond(resp: StarmanResponse) = {
+    val r = resp match {
       case MapResponse(s,r) => buildResult(s,r)
       case ListResponse(s,r) => buildResult(s,r)
       case FutureResponse(r) => r

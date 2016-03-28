@@ -10,7 +10,7 @@ autoCompilerPlugins := true
 val commonSettings = Seq(
   organization := "com.starman",
   //name := "starman",
-  version := "1.0.0",
+  version := "1.0.1",
   scalaVersion := "2.11.7",
   crossScalaVersions := Seq("2.11.7"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
@@ -68,7 +68,7 @@ val templateSettings = Seq(
   }
 )
 
-val generateVersionFileTask = TaskKey[Unit]("generateVersion", "Generate src/main/scala/xitrum/Version.scala")
+val generateVersionFileTask = TaskKey[Unit]("generateVersion", "Generate src/xitrum/Version.scala")
 
 generateVersionFileTask <<= generateVersionFile
 
@@ -101,8 +101,6 @@ class Version {
     if (content != oldContent) IO.write(file, content)
   }
 }
-
-
 
 lazy val xitrumSettings = Seq(
   libraryDependencies ++= Seq(

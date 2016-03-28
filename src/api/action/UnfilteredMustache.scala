@@ -29,49 +29,45 @@ ${s}
 """
 
   def execute(): Unit = {
-    if (isBot) {
-      //forwardTo[StaticHome]()
-    } else {
-     val original_path = paramo("original_path") match {
-       case Some(path) => path
-       case _ => "index"
-      }
-
-      val templateData = paramo("templateData") match {
-        case Some(data) => data
-        case _ => ""
-      }
-
-      //create a map of the templates
-      val templateDir = s"${System.getProperty("user.dir")}/templates"
-
-      def matchFunc(s: String) = s.endsWith(".mustache")
-      def keyGenerator(s: String) = s.replace(templateDir, "")
-                                     .replace(".mustache", "")
-                                     .drop(1)
-
-      val templateMap = FileReader.readAll(templateDir, keyGenerator, matchFunc)
-      val templates = templateMap.filter{ case (k,v) => k != "partials/header" && k != "partials/footer" }
-                                 .map{ case (k,v) => buildMustacheTag(k, v) }
-                                 .toList
-                                 .mkString("\n")
-
-      val data = userAsMap ++ Map(
-        "is_bot" -> isBot,
-        "dev_mode" -> devMode,
-        "cdn_uri" -> cdnUri,
-        "templates" -> templates,
-        "userData" -> userDataJs,
-        "environment" -> env,
-        "gitHash" -> infoMap("gitHash").toString,
-        "version" -> infoMap("version").toString
-        //"templateData" -> templateData*/
-
-      )
-
-      data.foreach(d => at(d._1) = d._2)
-      val index = MustacheFileReader.render(original_path, this, data)
-      respondText(index, "text/html", true)
+    val original_path = paramo("original_path") match {
+      case Some(path) => path
+      case _ => "index"
     }
+
+    val templateData = paramo("templateData") match {
+      case Some(data) => data
+      case _ => ""
+    }
+
+    //create a map of the templates
+    val templateDir = s"${System.getProperty("user.dir")}/templates"
+
+    def matchFunc(s: String) = s.endsWith(".mustache")
+    def keyGenerator(s: String) = s.replace(templateDir, "")
+                                    .replace(".mustache", "")
+                                    .drop(1)
+
+    val templateMap = FileReader.readAll(templateDir, keyGenerator, matchFunc)
+    val templates = templateMap.filter{ case (k,v) => k != "partials/header" && k != "partials/footer" }
+                                .map{ case (k,v) => buildMustacheTag(k, v) }
+                                .toList
+                                .mkString("\n")
+
+    val data = userAsMap ++ Map(
+      //"is_bot" -> isBot,
+      "dev_mode" -> devMode,
+      "cdn_uri" -> cdnUri,
+      "templates" -> templates,
+      "userData" -> userDataJs,
+      "environment" -> env,
+      "gitHash" -> infoMap("gitHash").toString,
+      "version" -> infoMap("version").toString
+      //"templateData" -> templateData*/
+
+    )
+
+    data.foreach(d => at(d._1) = d._2)
+    val index = MustacheFileReader.render(original_path, this, data)
+    respondText(index, "text/html", true)
   }
 }
