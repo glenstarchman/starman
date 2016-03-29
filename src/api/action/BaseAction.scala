@@ -33,7 +33,7 @@ import starman.common.converters.{Mapper, Convertable}
 import starman.common.converters.ListConverter
 import starman.common.helpers.Text._
 import starman.common.BuildInfo
-import starman.data.models.{User, FriendlyId}
+import starman.data.models.{User, FriendlyId, SiteView}
 import starman.common.StarmanConfig
 import starman.common.Types._
 import starman.common.exceptions._
@@ -43,7 +43,7 @@ trait BaseWebsocketAction extends WebSocketAction with Log {
 
 }
 
-trait BaseAction extends Action with Net with Log with SkipCsrfCheck {
+trait BaseAction extends FutureAction with Net with Log with SkipCsrfCheck {
 
   implicit val formats = Serialization.formats(NoTypeHints)
 
@@ -210,32 +210,38 @@ trait BaseAction extends Action with Net with Log with SkipCsrfCheck {
 
 trait TrackableView extends BaseAction {
   afterFilter {
-    val viewer = user match {
-      case Some(u) => u.id
-      case _ => 0
-    }
+    Future {
+      val viewer = user match {
+        case Some(u) => u.id
+        case _ => 0
+      }
 
-    val baseClassType = getClass.getName.split('.').toList.reverse.head
-    val model = baseClassType match {
-      case "ProjectInfo" => "Project"
-      case "UserInfo" => "User"
-      case _ => ""
-    }
+      val baseClassType = getClass.getName.split('.').toList.reverse.head
+      val model = baseClassType match {
+        case "ProjectInfo" => "Project"
+        case "UserInfo" => "User"
+        case _ => ""
+      }
 
-    //if this is a friendly id, look up its real value
-    val id:Long = paramo("id") match {
-      case Some(x) =>
-        try {
-          x.toString.toLong
-        } catch {
-         case e: Exception => {
-            FriendlyId.getIdFromHash(model, param[String]("id")) match {
-              case Some(id) => id
-              case _ => 0l
+      //if this is a friendly id, look up its real value
+      val id:Long = paramo("id") match {
+        case Some(x) =>
+          try {
+            x.toString.toLong
+          } catch {
+          case e: Exception => {
+              FriendlyId.getIdFromHash(model, param[String]("id")) match {
+                case Some(id) => id
+                case _ => 0l
+              }
             }
           }
-        }
-      case _ => 0l
+        case _ => 0l
+      }
+      id match {
+        case i: Long if i > 0l=> SiteView.create(model, i, viewer)
+        case _ => ()
+      }
     }
   }
 }
