@@ -90,33 +90,45 @@ object FriendlyId extends CompanionTable[FriendlyId] {
       slug
     }.reverse.dropWhile(_ == '-').reverse
 
-    //see if this model already has a row with this friendly id
-    val existingEntry = fetchOne {
+    //if this exact
+    val e = fetchOne {
       from(FriendlyIds)(fi =>
-      where(fi.model === model and fi.modelId === id)
+      where(fi.model === model and fi.modelId === id and fi.hash === baseHash)
       select(fi))
     }
 
-    val fid = existingEntry match {
-      case Some(x) => x.id
-      case _ => 0l
-    }
+    e match {
+      case Some(fi) => e
+      case _ => {
+        //see if this model already has a row with this friendly id
+        val existingEntry = fetchOne {
+          from(FriendlyIds)(fi =>
+          where(fi.model === model and fi.modelId === id)
+          select(fi))
+        }
 
-    val hashExists = fetchOne {
-      from(FriendlyIds)(fi =>
-      where(fi.model === model and fi.hash === baseHash and fi.modelId <> id)
-      select(fi))
-    }
+        val fid = existingEntry match {
+          case Some(x) => x.id
+          case _ => 0l
+        }
 
-    val finalHash = hashExists match {
-      case Some(x) => s"${baseHash}-${id.toString}"
-      case _ => baseHash
-    }
+        val hashExists = fetchOne {
+          from(FriendlyIds)(fi =>
+          where(fi.model === model and fi.hash === baseHash and fi.modelId <> id)
+          select(fi))
+        }
 
-    val fi = FriendlyId(id=fid, model=model, modelId=id, hash=finalHash)
-    withTransaction {
-      FriendlyIds.upsert(fi)
-      Option(fi)
+        val finalHash = hashExists match {
+          case Some(x) => s"${baseHash}-${id.toString}"
+          case _ => baseHash
+        }
+
+        val fi = FriendlyId(id=fid, model=model, modelId=id, hash=finalHash)
+        withTransaction {
+          FriendlyIds.upsert(fi)
+          Option(fi)
+        }
+      }
     }
   }
 }

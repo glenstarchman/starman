@@ -104,7 +104,8 @@ trait RequestEnv extends ParamAccess {
    * The merge of all text params (queryParams, bodyParams, and pathParams),
    * as contrast to file upload (bodyFileParams).
    */
-  lazy val textParams           = handlerEnv.textParams
+  lazy val textParams = handlerEnv.textParams
+
 
   /** The whole request body as String. */
   lazy val requestContentString = handlerEnv.requestContentString

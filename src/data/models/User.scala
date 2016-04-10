@@ -31,25 +31,18 @@ object UserHelper {
     }
   }
 
-  def get(id: Any): Option[User] =  {
-    try {
-      User.get(id.toString.toLong) match {
-        case Some(u) => Option(u)
-        case _ => throw(new NoUserException())
-      }
-    } catch {
-      case e: Exception => {
-        val optUser = FriendlyId.get("User", id.toString).asInstanceOf[Option[User]]
-        optUser match {
-          case Some(u) if u.deactivated == false => Option(u)
-          case _ => throw(new NoUserException())
-        }
-      }
+  def get(id: Long) = User.get(id)
+
+  def get(id: String): Option[User] =  {
+    val optUser = FriendlyId.get("User", id.toString).asInstanceOf[Option[User]]
+    optUser match {
+      case Some(u) if u.deactivated == false => Option(u)
+      case _ => throw(new NoUserException())
     }
   }
 
   def getAsMap(id: Any): Option[Map[String, Any]] = {
-    get(id) match {
+    get(getId(id)) match {
       case Some(user) => Option(user.asInstanceOf[User].asMap)
       case _ => throw(new NoUserException())
     }
@@ -192,6 +185,7 @@ object User extends CompanionTable[User] {
     Hasher.sha512(salt, password)
   }
 
+
   def getByEmail(email: String) = fetchOne {
     from(Users)(u => where(u.email === email)
     select(u))
@@ -255,7 +249,7 @@ object User extends CompanionTable[User] {
           user
         }
       }
-      case _ => throw(new InvalidPasswordResetCodeException())
+      case _ => throw(new InvalidPasswordResetCodeException)
     }
   }
 
@@ -288,6 +282,16 @@ object User extends CompanionTable[User] {
       where(u.accessToken === accessToken)
       select(u))
     }
+  }
+
+  def getByFriendlyId(friendlyId: String) = fetchOne {
+    from(Users, FriendlyIds)((u,f) =>
+    where (
+      (f.model === "User") and
+      (f.hash === friendlyId) and
+      (f.modelId === u.id)
+    )
+    select(u, f.hash))
   }
 
   def get(userName: String, password: String) = {
@@ -425,7 +429,6 @@ object User extends CompanionTable[User] {
   }
 
   def checkLogin(userName: String, password: String): Option[User] = {
-    println(password)
     val hashedPass = hashPassword(password)
     val u = fetchOne {
       val s = from(Users, SocialAccounts)((u, sa) =>

@@ -7,16 +7,17 @@ package starman.api.action
 import java.util.ArrayList
 import java.util.HashMap
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
-import scala.util.{Success, Failure}
-import scala.concurrent.duration._
+import scala.concurrent.{Future, Await}
+//import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Success, Failure, Try}
+import scala.concurrent.ExecutionContext
+//import scala.concurrent.duration._
 import akka.actor.{Actor, ActorSystem}
 import akka.pattern.after
 import scala.language.implicitConversions
-import scala.concurrent.ExecutionContext
 import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.HttpResponseStatus
-import xitrum.{Action, FutureAction, WebSocketAction}
+import xitrum.{Action, FutureAction, ActorAction, WebSocketAction}
 import xitrum.action.Net
 import xitrum.view.ScalateEngine
 import xitrum.SkipCsrfCheck
@@ -25,8 +26,7 @@ import org.json4s.jackson.Serialization
 import org.json4s.jackson.Serialization._
 import com.mindscapehq.raygun4java.core.RaygunClient
 import com.mindscapehq.raygun4java.core.messages.RaygunIdentifier
-import net.sf.uadetector.service._
-import net.sf.uadetector._
+import net.sf.uadetector.service.UADetectorServiceFactory
 import starman.common.{Codes, Log}
 import starman.common.Codes.StatusCode
 import starman.common.converters.{Mapper, Convertable}
@@ -38,6 +38,7 @@ import starman.common.StarmanConfig
 import starman.common.Types._
 import starman.common.exceptions._
 import starman.common.helpers.{Hasher, TokenGenerator}
+import starman.api.Boot
 
 trait BaseWebsocketAction extends WebSocketAction with Log {
 
@@ -163,7 +164,7 @@ trait BaseAction extends FutureAction with Net with Log with SkipCsrfCheck {
     "requestIp" -> requestIp,
     "start" -> startTimestamp,
     "end" -> System.currentTimeMillis,
-    "executionTime" -> (System.currentTimeMillis - startTimestamp),
+    "executionTime" -> "%04d".format(System.currentTimeMillis - startTimestamp),
     "params" -> textParams.map(x => x._1 -> x._2.head),
     "requestUser" -> userAsMap,
     "userAgent" -> userAgent
@@ -203,45 +204,41 @@ trait BaseAction extends FutureAction with Net with Log with SkipCsrfCheck {
       respondText(s"Exception: ${message}")
     }
   }
-
-  def getParamThen[T, S](name: String, success: (S) => T, failure: => T) = {
-  }
 }
 
 trait TrackableView extends BaseAction {
   afterFilter {
-    Future {
-      val viewer = user match {
-        case Some(u) => u.id
-        case _ => 0
-      }
+    val viewer = user match {
+      case Some(u) => u.id
+      case _ => 0
+    }
 
-      val baseClassType = getClass.getName.split('.').toList.reverse.head
-      val model = baseClassType match {
-        case "ProjectInfo" => "Project"
-        case "UserInfo" => "User"
-        case _ => ""
-      }
+    val baseClassType = getClass.getName.split('.').toList.reverse.head
+    val model = baseClassType match {
+      case "UserInfo" => "User"
+      case _ => ""
+    }
 
-      //if this is a friendly id, look up its real value
-      val id:Long = paramo("id") match {
-        case Some(x) =>
-          try {
-            x.toString.toLong
-          } catch {
-          case e: Exception => {
-              FriendlyId.getIdFromHash(model, param[String]("id")) match {
-                case Some(id) => id
-                case _ => 0l
-              }
+    //if this is a friendly id, look up its real value
+    val id:Long = paramo("id") match {
+      case Some(x) =>
+        try {
+          x.toString.toLong
+        } catch {
+        case e: Exception => {
+            println(e)
+            FriendlyId.getIdFromHash(model, param[String]("id")) match {
+              case Some(id) => id
+              case _ => 0l
             }
           }
-        case _ => 0l
-      }
-      id match {
-        case i: Long if i > 0l=> SiteView.create(model, i, viewer)
-        case _ => ()
-      }
+        }
+      case _ => 0l
+    }
+
+    id match {
+      case i: Long if i > 0l=> SiteView.create(model, i, viewer)
+      case _ => ()
     }
   }
 }
@@ -282,17 +279,25 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
   def execute(): Unit = {}
   //uses the EC from Xitrum
   //takes a method returning either a StarmanResponse or a Throwable
-  def render(callback: =>  StarmanResponse)(implicit ev: ExecutionContext): Unit = {
+  def render(callback: =>  StarmanResponse): Unit = {
     val future = Future { callback }
     future onComplete {
       case Success(result: StarmanResponse) => {
         result match {
-          case r @ (MapResponse(_,_) | ListResponse(_,_) | ExceptionResponse(_)) => respond(r)
+          case r @ (MapResponse(_,_) |
+                    ListResponse(_,_) |
+                    ExceptionResponse(_)) => respond(r)
+          //handle when render returns its own future
           case r @ (_: FutureResponse) => r.channelFuture
         }
       }
-      case Failure(ex) => render(ExceptionResponse(ex))
+      case Failure(ex) => {
+        render(ExceptionResponse(ex))
+        //logger.error(ex)
+      }
+
       //completely unknown response
+      //it SHOULD be impossible to get here
       case _ => render(ExceptionResponse(new ResponseException))
     }
   }
@@ -317,6 +322,7 @@ trait JsonAction extends BaseAction with SkipCsrfCheck {
       }
       case ex: Exception => {
         starmanCode = R.GENERIC_ERROR
+        responseCode = HttpResponseStatus.NOT_FOUND
         underlyingException = Option(ex)
       }
     }

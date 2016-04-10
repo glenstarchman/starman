@@ -28,8 +28,9 @@ import org.squeryl.PrimitiveTypeMode
 import starman.common.StarmanCache._
 import starman.data.ConnectionPool
 import starman.common.helpers.Text._
+import starman.common.TraceLog
 import starman.common.helpers.{FileReader, FileWriter}
-import starman.common.{Log, StarmanConfig}
+import starman.common.{Log, TraceLog, StarmanConfig}
 
 object SquerylEntrypoint extends PrimitiveTypeMode
 
@@ -129,8 +130,8 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
 
   def logSql(s: String) = info(s)
 
-  def createSession() = {
-    Class.forName(StarmanConfig.get[String]("db.driver_class"));
+  //def createSession() = {
+  implicit val session = {
     val session = SessionFactory.concreteFactory = Some(()=> {
       val session = Session.create(
         ConnectionPool.getConnection.get,
@@ -219,24 +220,21 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
   }
 
   /* query wrappers */
-  def withTransaction[A](a: => A): A = {
-    createSession
-    transaction { a }
-  }
+  /* these use the implicit session */
+  def withTransaction[A](a: => A): A = transaction { a }
 
   def withTransactionFuture[A](a: => A): Future[A] = Future {
-    createSession
     transaction { a }
   }
 
-  def fetchOne[A](a: => Query[A]): Option[A] = withTransaction { a.toList.headOption }
+  def fetchOne[A](a: => Query[A]): Option[A] = withTransaction { a.headOption }
 
   def fetch[A](a: => Query[A]): List[A] = withTransaction { a.toList }
 
   /* futures enabled query wrappers */
   def futureFetch[A](a: => Query[A]): Future[List[A]] = withTransactionFuture { a.toList }
 
-  def futureFetchOne[A](a: => Query[A]): Future[Option[A]] = withTransactionFuture { a.toList.headOption}
+  def futureFetchOne[A](a: => Query[A]): Future[Option[A]] = withTransactionFuture { a.headOption}
 
   /* overrides to make table and column names sane */
   private[this] def columnize(s: String) = underscore(s) match {

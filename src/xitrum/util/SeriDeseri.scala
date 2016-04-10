@@ -45,6 +45,7 @@ object SeriDeseri {
   def toJson(scalaObject: AnyRef): String =
     Serialization.write(scalaObject)(noTypeHints)
 
+
   /**
    * Converts JSON string to Scala object (case class, Map, Seq etc.).
    * If you want to do more complicated things, you should use JSON4S directly:

@@ -9,12 +9,12 @@ import starman.common.helpers.{Hasher, TokenGenerator}
 import starman.common.Types._
 import StarmanSchema._
 
-case class SiteView(var id: Long=0, 
+case class SiteView(var id: Long=0,
                 var model: String="",
                 var modelId: Long = 0,
                 var viewedBy: Long = 0,
-                var createdAt: Timestamp=new Timestamp(System.currentTimeMillis), 
-                var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis)) 
+                var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
+                var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis))
   extends BaseStarmanTableWithTimestamps {
 
 
@@ -23,7 +23,7 @@ case class SiteView(var id: Long=0,
 object SiteView extends CompanionTable[SiteView] {
 
   def getCountForObject(model: String, modelId: Long) = fetchOne {
-    from(SiteViews)(sv => 
+    from(SiteViews)(sv =>
     where(sv.model === model and sv.modelId === modelId)
     compute(count()))
   }.headOption match {
@@ -32,7 +32,7 @@ object SiteView extends CompanionTable[SiteView] {
   }
 
 
-  def create(model: String, modelId: Long, viewedBy: Long = 0) = withTransactionFuture {
+  def create(model: String, modelId: Long, viewedBy: Long = 0) = withTransaction/*Future*/ {
     val p = SiteView(model = model, modelId = modelId, viewedBy = viewedBy)
     SiteViews.upsert(p)
     p

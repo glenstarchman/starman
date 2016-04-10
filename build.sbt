@@ -107,16 +107,16 @@ lazy val xitrumSettings = Seq(
     // Projects using Xitrum must provide a concrete implementation of SLF4J (Logback etc.)
     "org.slf4s" %% "slf4s-api" % "1.7.12",
     // Netty is the core of Xitrum's HTTP(S) feature
-    "io.netty" % "netty-all" % "4.0.33.Final",
+    "io.netty" % "netty-all" % "4.1.0.CR4",
     // https://github.com/netty/netty/wiki/Forked-Tomcat-Native
     // https://groups.google.com/forum/#!topic/netty/oRATC6Tl0A4
     // Include all classifiers for convenience
-    "io.netty" % "netty-tcnative" % "1.1.33.Fork10" classifier "linux-x86_64",
-    "io.netty" % "netty-tcnative" % "1.1.33.Fork10" classifier "osx-x86_64",
-    "io.netty" % "netty-tcnative" % "1.1.33.Fork10" classifier "windows-x86_64",
+    "io.netty" % "netty-tcnative" % "1.1.33.Fork15" classifier "linux-x86_64",
+    "io.netty" % "netty-tcnative" % "1.1.33.Fork15" classifier "osx-x86_64",
+    "io.netty" % "netty-tcnative" % "1.1.33.Fork15" classifier "windows-x86_64",
     // https://github.com/netty/netty/wiki/Native-transports
     // Only works on Linux
-    "io.netty" % "netty-transport-native-epoll" % "4.0.33.Final" classifier "linux-x86_64",
+    "io.netty" % "netty-transport-native-epoll" % "4.1.0.CR4" classifier "linux-x86_64",
     // Javassist boosts Netty 4 speed
     "org.javassist" % "javassist" % "3.20.0-GA",
     // Redirect Akka log to SLF4J
@@ -219,6 +219,7 @@ lazy val api = (project in (file(".")))
       "net.sf.uadetector" % "uadetector-resources" % "2014.10",
       "com.vividsolutions" % "jts" % "1.13",
       "org.opentripplanner" % "otp" % "0.13.0",
+      "com.chuusai" %% "shapeless" % "2.3.0",
       "org.scalatest" % "scalatest_2.11" % "3.0.0-M14" % "test",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
     ),

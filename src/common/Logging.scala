@@ -52,13 +52,13 @@ trait TimedExecution {
      a log message and the results as a Tuple2
  */
   private def timedImpl[T](identifier: String, thunk: => T) = {
-    val t1 = System.nanoTime
+    val t1 = System.currentTimeMillis
     val ret: T = thunk
-    val time = ((System.nanoTime - t1)/1000.00).round
+    val time = (System.currentTimeMillis - t1)
     val prettyTime = time match {
       case x if x >= 60000 => s"${x/60000.0}m"
       case x if x > 1000 => s"${(x/1000.0)}s"
-      case x if x < 1000 => s"${(x/1000.0)}ms"
+      case x if x < 1000 => s"${(x)}ms"
 
     }
     val message:String = s"Executed ${identifier} in ${prettyTime}"
@@ -100,7 +100,7 @@ object TraceLog extends TraceLog with TimedExecution {
 
   def apply[T](identifier: String)(thunk: => T): T = {
     val (message, ret) = timed(identifier)(thunk)
-    log(message, 3)
+    log(message, 5)
     ret
   }
 
@@ -111,6 +111,9 @@ object TraceLog extends TraceLog with TimedExecution {
   }
 
   private def log(message: Any, bt: Int = 2) = {
+    val st = Thread.currentThread.getStackTrace
+    val stackRepr = st.mkString("\t\n")
+
     val fullClassName = Thread.currentThread().getStackTrace()(bt).getClassName()
     val className = fullClassName.substring(fullClassName.lastIndexOf(".") + 1)
     val methodName = Thread.currentThread().getStackTrace()(bt).getMethodName()
@@ -118,6 +121,7 @@ object TraceLog extends TraceLog with TimedExecution {
     message match {
       case x: String =>
         info(s"${className}.${methodName} @ ${lineNumber}: ${message}")
+        info(s"Trace: ${stackRepr}")
     }
   }
 }

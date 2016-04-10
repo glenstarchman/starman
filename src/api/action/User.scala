@@ -27,6 +27,12 @@ trait UserApi extends JsonAction
 )
 trait AuthorizedUserApi extends AuthorizedJsonAction
 
+@GET("api/test")
+class TestUser extends UserApi {
+  render {
+    MapResponse(R.OK, Map("1" -> 2))
+  }
+}
 @POST("api/user/:id")
 @GET("api/user/:id")
 @POST("api/profile/:id")
@@ -39,8 +45,7 @@ trait AuthorizedUserApi extends AuthorizedJsonAction
 class UserInfo extends UserApi with TrackableView {
 
   render {
-    val id = param("id")
-    val userData = UserHelper.getAsMap(id)
+    val userData = UserHelper.getAsMap(param("id"))
     userData match {
       case Some(user) => {
         if (user("deactivated").toString.toBoolean) {
