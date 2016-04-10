@@ -208,37 +208,39 @@ trait BaseAction extends FutureAction with Net with Log with SkipCsrfCheck {
 
 trait TrackableView extends BaseAction {
   afterFilter {
-    val viewer = user match {
-      case Some(u) => u.id
-      case _ => 0
-    }
+    Future {
+      val viewer = user match {
+        case Some(u) => u.id
+        case _ => 0
+      }
 
-    val baseClassType = getClass.getName.split('.').toList.reverse.head
-    val model = baseClassType match {
-      case "UserInfo" => "User"
-      case _ => ""
-    }
+      val baseClassType = getClass.getName.split('.').toList.reverse.head
+      val model = baseClassType match {
+        case "UserInfo" => "User"
+        case _ => ""
+      }
 
-    //if this is a friendly id, look up its real value
-    val id:Long = paramo("id") match {
-      case Some(x) =>
-        try {
-          x.toString.toLong
-        } catch {
-        case e: Exception => {
-            println(e)
-            FriendlyId.getIdFromHash(model, param[String]("id")) match {
-              case Some(id) => id
-              case _ => 0l
+      //if this is a friendly id, look up its real value
+      val id:Long = paramo("id") match {
+        case Some(x) =>
+          try {
+            x.toString.toLong
+          } catch {
+          case e: Exception => {
+              println(e)
+              FriendlyId.getIdFromHash(model, param[String]("id")) match {
+                case Some(id) => id
+                case _ => 0l
+              }
             }
           }
-        }
-      case _ => 0l
-    }
+        case _ => 0l
+      }
 
-    id match {
-      case i: Long if i > 0l=> SiteView.create(model, i, viewer)
-      case _ => ()
+      id match {
+        case i: Long if i > 0l=> SiteView.create(model, i, viewer)
+        case _ => ()
+      }
     }
   }
 }

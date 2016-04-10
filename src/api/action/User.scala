@@ -42,7 +42,7 @@ class TestUser extends UserApi {
   Swagger.Summary("retrieves a user by id"),
   Swagger.IntPath("id", "the user id to retrieve")
 )
-class UserInfo extends UserApi with TrackableView {
+class UserInfo extends UserApi with TrackableView  {
 
   render {
     val userData = UserHelper.getAsMap(param("id"))
