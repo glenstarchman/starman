@@ -22,6 +22,9 @@ object Gzip {
   }
 
   def compress(bytes: Array[Byte]) = {
+    bytes
+    /*
+    println("compressing")
     val b = new ByteArrayOutputStream
     val g = new GZIPOutputStream(b)
     g.write(bytes)
@@ -30,6 +33,7 @@ object Gzip {
     g.close()
     b.close()
     ret
+     */
   }
 
   def uncompress(bytes: Array[Byte]) = {

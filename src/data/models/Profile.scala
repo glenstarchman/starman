@@ -26,7 +26,7 @@ case class Profile(var id: Long = 0,
 
 }
 
-object Profile extends CompanionTable[Profile] {
+object Profile extends CompanionTable[Profile] with CacheableTable[Profile] {
 
   def getForUser(user: Long) = fetchOne {
     from(Profiles)(p =>

@@ -13,6 +13,7 @@ import starman.common.Types._
 import starman.data.models.StarmanSchema._
 import starman.common.StarmanCache._
 import starman.common.helpers.{Text}
+import starman.data.Redis
 
 trait BaseStarmanTable extends Convertable with KeyedEntity[Long]
 
@@ -78,6 +79,16 @@ trait BaseStarmanTableWithTimestamps extends BaseStarmanTable with Adminable {
   def baseKey = s"${modelName}:${id}"
 }
 
+trait CacheableTable[T <: BaseStarmanTableWithTimestamps] {
+  def store =  ???
+  def delete =  ???
+  def update = {
+    delete
+    store
+  }
+  def setExpiration = ???
+}
+
 trait FriendlyIdable extends BaseStarmanTableWithTimestamps {
 
   def getNameField() = {
@@ -115,12 +126,17 @@ trait CompanionTable[M <: BaseStarmanTableWithTimestamps] {
   private def cacheKey(id: Long) = s"${modelName}:${id.toString}"
 
   /* simple helpers based on primary key */
-  def get(id: Long): Option[M] = {
-    fetchOne {
+  def get(id: Long)(implicit m: Manifest[M]): Option[M] = {
+    lazy val query =
       from(model)(m =>
       where(m.id === id)
       select(m))
-    }.asInstanceOf[Option[M]]
+
+    if (isInstanceOf[CacheableTable[M]]) {
+      fetchOneCacheable(cacheKey(id))(query).asInstanceOf[Option[M]]
+    } else {
+      fetchOne { query }.asInstanceOf[Option[M]]
+    }
   }
 
   def delete(id: Long) = {
@@ -137,7 +153,7 @@ trait CompanionTable[M <: BaseStarmanTableWithTimestamps] {
     }
   }
 
-  def exists(id: Long) = {
+  def exists(id: Long)(implicit m: Manifest[M]) = {
     get(id) match {
       case Some(x) => true
       case _ => false

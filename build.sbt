@@ -17,6 +17,7 @@ val commonSettings = Seq(
   resolvers += Resolver.sonatypeRepo("releases"),
   resolvers += "jBCrypt Repository" at "http://repo1.maven.org/maven2/org/",
   resolvers += "RoundEights" at "http://maven.spikemark.net/roundeights",
+  resolvers += "rediscala" at "http://dl.bintray.com/etaty/maven",
   libraryDependencies ++= Seq(
     "commons-io" % "commons-io" % "2.4",
     "joda-time" % "joda-time" % "2.8.1",
@@ -220,6 +221,7 @@ lazy val api = (project in (file(".")))
       "com.vividsolutions" % "jts" % "1.13",
       "org.opentripplanner" % "otp" % "0.13.0",
       "com.chuusai" %% "shapeless" % "2.3.0",
+      "com.etaty.rediscala" %% "rediscala" % "1.5.0",
       "org.scalatest" % "scalatest_2.11" % "3.0.0-M14" % "test",
       "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
     ),

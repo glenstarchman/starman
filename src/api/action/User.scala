@@ -4,7 +4,7 @@
 
 package starman.api.action
 
-import xitrum.annotation.{GET, POST, First, Swagger}
+import xitrum.annotation.{GET, POST, First, Swagger, CachePageHour}
 import xitrum.SkipCsrfCheck
 import starman.data.models._
 import starman.data.models.StarmanSchema._
@@ -33,6 +33,7 @@ class TestUser extends UserApi {
     MapResponse(R.OK, Map("1" -> 2))
   }
 }
+
 @POST("api/user/:id")
 @GET("api/user/:id")
 @POST("api/profile/:id")

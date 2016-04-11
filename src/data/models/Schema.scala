@@ -26,10 +26,10 @@ import java.util.Date
 import java.sql.Timestamp
 import org.squeryl.PrimitiveTypeMode
 import starman.common.StarmanCache._
-import starman.data.ConnectionPool
+import starman.data.{ConnectionPool, Redis}
 import starman.common.helpers.Text._
 import starman.common.TraceLog
-import starman.common.helpers.{FileReader, FileWriter}
+import starman.common.helpers.{FileReader, FileWriter, Hasher}
 import starman.common.{Log, TraceLog, StarmanConfig}
 
 object SquerylEntrypoint extends PrimitiveTypeMode
@@ -130,12 +130,12 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
 
   def logSql(s: String) = info(s)
 
-  //def createSession() = {
   implicit val session = {
     val session = SessionFactory.concreteFactory = Some(()=> {
       val session = Session.create(
         ConnectionPool.getConnection.get,
-        new StarmanPostgreSqlAdapter)
+        new StarmanPostgreSqlAdapter
+      )
       session.bindToCurrentThread
       //uncomment to log raw SQL to the log
       //session.setLogger(logSql)
@@ -225,6 +225,28 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
 
   def withTransactionFuture[A](a: => A): Future[A] = Future {
     transaction { a }
+  }
+
+  def fetchOneCacheable[A](a: => Query[A])(implicit m: Manifest[A]): Option[A] = {
+    val key = transaction { Hasher.sha256(a.statement) }
+    fetchOneCacheable(key)(a)
+  }
+
+  def fetchOneCacheable[A](key: String)(a: => Query[A])(implicit m: Manifest[A]) = {
+    val maybeResult = try {
+      Redis.get[A](key)
+    } catch {
+      case e: Throwable => None
+    }
+
+    maybeResult match {
+      case Some(r) => Option(r)
+      case _ => {
+        val result = transaction { a.headOption }
+        Redis.setAsync(key, result)
+        result
+      }
+    }
   }
 
   def fetchOne[A](a: => Query[A]): Option[A] = withTransaction { a.headOption }

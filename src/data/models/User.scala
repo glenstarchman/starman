@@ -22,7 +22,7 @@ object UserHelper {
     val i = try {
       Option(id.toString.toLong)
     } catch {
-      case e: Exception => FriendlyId.getIdFromHash("User", id.toString)
+      case e: Throwable  => FriendlyId.getIdFromHash("User", id.toString)
     }
 
     i match {
@@ -63,7 +63,7 @@ case class User(override var id: Long=0,
                 var resetCode: String = null,
                 var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
                 var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis))
-  extends FriendlyIdable with BaseStarmanTableWithTimestamps {
+  extends FriendlyIdable {
 
 
   override def extraMap() = Map(
@@ -131,8 +131,10 @@ case class User(override var id: Long=0,
 
 
 
-  def profile():Option[Profile] = fetchOne {
-      from(Profiles)(p => where(p.userId === id) select(p))
+  def profile():Option[Profile] = fetchOneCacheable(s"Profile:${id}") {
+    from(Profiles)(p =>
+    where(p.userId === id)
+    select(p))
   }
 
   def socialAccounts() = SocialAccount.getByUser(id)
@@ -146,7 +148,7 @@ case class User(override var id: Long=0,
 
 }
 
-object User extends CompanionTable[User] {
+object User extends CompanionTable[User] with CacheableTable[User] {
 
 
   //SUPER SILLY WAY OF RETURNING THE USER'S PROJECTS INSTEAD OF THEIR PROFILE
@@ -265,12 +267,9 @@ object User extends CompanionTable[User] {
   def setNonContactable(email: String) = {
     val user = getByEmail(email)
     user match {
-      case Some(_user) => {
-        withTransaction {
-          update(Users)(u =>
-          where(u.id === _user.id)
-          set(u.contactable := false))
-        }
+      case Some(_user) => withTransaction {
+        _user.contactable = false
+        Users.upsert(_user)
       }
       case _ => ()
     }
@@ -311,7 +310,7 @@ object User extends CompanionTable[User] {
     }
   }
 
-  override def get(id: Long) = fetchOne {
+  def get(id: Long) = fetchOneCacheable(s"User:${id}") {
     from(Users)(u =>
     where(u.id === id and u.deactivated === false)
     select(u))
