@@ -253,10 +253,38 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
 
   def fetch[A](a: => Query[A]): List[A] = withTransaction { a.toList }
 
-  /* futures enabled query wrappers */
-  def futureFetch[A](a: => Query[A]): Future[List[A]] = withTransactionFuture { a.toList }
+  def fetchCacheable[A](a: => Query[A])(implicit m: Manifest[List[A]]): List[A] = {
+    val key = transaction { Hasher.sha256(a.statement) }
+    fetchCacheable(key)(a)
+  }
 
-  def futureFetchOne[A](a: => Query[A]): Future[Option[A]] = withTransactionFuture { a.headOption}
+  def fetchCacheable[A](key: String)(a: => Query[A])(implicit m: Manifest[List[A]]) = {
+    val maybeResult = try {
+      Redis.get[List[A]](key)
+    } catch {
+      case e: Throwable => None
+    }
+
+    maybeResult match {
+      case Some(r) => r.asInstanceOf[List[A]]
+      case _ => {
+        val result = transaction { a.toList }
+        Redis.setAsync(key, result)
+        result
+      }
+    }
+
+  }
+
+
+  /* futures enabled query wrappers */
+  def futureFetch[A](a: => Query[A]): Future[List[A]] = withTransactionFuture {
+    a.toList
+  }
+
+  def futureFetchOne[A](a: => Query[A]): Future[Option[A]] = withTransactionFuture {
+    a.headOption
+  }
 
   /* overrides to make table and column names sane */
   private[this] def columnize(s: String) = underscore(s) match {
@@ -298,5 +326,4 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
     "Notification" -> Notifications,
     "Setting" -> Settings
   )
-
 }
