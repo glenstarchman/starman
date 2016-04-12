@@ -98,6 +98,10 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
   implicit class UpsertableTable[T <: BaseStarmanTableWithTimestamps](t: Table[T]) {
 
     def upsert(obj: T)(implicit m:Manifest[T]): T = {
+      if (obj.isInstanceOf[CacheableTable[T]]) {
+        //remove from cache
+        Redis.delete(obj.baseKey)
+      }
       val created = if (obj.createdAt == null) {
         new Timestamp(System.currentTimeMillis)
       } else {
@@ -109,7 +113,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
       val savedObj = obj.id match {
         case 0L =>  withTransaction { t.insert(obj) }
         case _ => {
-          withTransaction { t.update(obj) }
+          withTransaction { t.update(obj) ; Redis.set(obj.baseKey, obj)}
           obj
         }
       }

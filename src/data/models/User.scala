@@ -63,7 +63,7 @@ case class User(override var id: Long=0,
                 var resetCode: String = null,
                 var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
                 var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis))
-  extends FriendlyIdable {
+  extends FriendlyIdable with CacheableTable[User] {
 
 
   override def extraMap() = Map(
