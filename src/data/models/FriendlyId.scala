@@ -18,9 +18,9 @@ case class FriendlyId(var id: Long = 0,
 
 }
 
-object FriendlyId extends CompanionTable[FriendlyId] {
+object FriendlyId extends CompanionTable[FriendlyId] with CacheableTable[FriendlyId] {
 
-  def getIdFromHash(model: String, hash: String) = fetchOne {
+  def getIdFromHash(model: String, hash: String) = fetchOneCacheable(s"${model}:${hash}:ID") {
     from(FriendlyIds)(fi =>
     where(fi.model === model and fi.hash === hash)
     select(fi.modelId))
@@ -29,14 +29,14 @@ object FriendlyId extends CompanionTable[FriendlyId] {
   /* retrieve the model associated with this friendly id */
   def get(model: String, hash: String) = {
     val m = lookup(model)
-    fetchOne {
+    fetchOneCacheable(s"${model}:${hash}") {
       from(FriendlyIds, m)((fi, mo) =>
       where(fi.model === model and fi.hash === hash and mo.id === fi.modelId)
       select(mo))
     }
   }
 
-  def get(model: String, id: Long) = fetchOne {
+  def get(model: String, id: Long) = fetchOneCacheable(s"FriendlyId:${model}:${id}") {
     from(FriendlyIds)(fi =>
     where(fi.model === model and fi.modelId === id)
     select(fi))

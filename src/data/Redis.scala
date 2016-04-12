@@ -1,21 +1,33 @@
 package starman.data
 
-import redis.RedisClient
 import scala.concurrent.Await
 import scala.util.{Success, Failure}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import akka.util.ByteString
+import redis.{RedisClient, ByteStringFormatter}
 import xitrum.util.SeriDeseri
+import xitrum.util.DefaultsTo
 import starman.data.models.User
 import starman.common.StarmanConfig
-
 
 object Redis {
 
   val timeout = StarmanConfig.get[Int]("starman.redis_timeout") milliseconds
 
   implicit val akkaSystem = akka.actor.ActorSystem()
+
   val redis = RedisClient()
+
+  def setMap(key: String, value: Map[String, Any]) = {
+    value.foreach { case(k,v) => {
+      if (v == null) {
+        redis.hset(key, k, "")
+      } else {
+        redis.hset(key, k, v.toString)
+      }
+    }}
+  }
 
   def set(key: String, value: AnyRef) = { //
     val f = redis.set(key, SeriDeseri.toJson(value))
@@ -23,8 +35,6 @@ object Redis {
   }
 
   def setAsync(key: String, value: AnyRef) = redis.set(key, SeriDeseri.toJson(value))
-
-  def get(key: String) = get[String](key)
 
   def delete(key: String) = redis.del(key)
 
@@ -39,7 +49,7 @@ object Redis {
     }
   }
 
-  def get[T](key: String)(implicit m: Manifest[T]): Option[T] = {
+  def get[T](key: String)(implicit e: T DefaultsTo String, m: Manifest[T]) = {
     val f = redis.get(key)
 
     val s = Await.result(f, timeout)
@@ -59,19 +69,5 @@ object Redis {
   def getList[A](key: String)(implicit m: Manifest[A]) = get[List[A]](key)
   def getMap(key: String) = get[Map[String, Any]](key)
 
-  def test = {
-    val u = User.get(1).get
-    //delete(u.baseKey)
-    val success = (v: User) => Option(v)
-    val failure = () => {
-      val u = User.get(1).get
-      set(u.baseKey, u)
-      println("from DB")
-      Option(u)
-    }
-
-    getAndThen[User](u.baseKey)(success,failure)
-    //set(u.baseKey, u)
-  }
 
 }

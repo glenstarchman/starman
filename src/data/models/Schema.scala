@@ -326,4 +326,5 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
     "Notification" -> Notifications,
     "Setting" -> Settings
   )
+
 }
