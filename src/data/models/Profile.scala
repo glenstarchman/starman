@@ -18,7 +18,7 @@ case class Profile(var id: Long = 0,
                    var location: String = "",
                    var createdAt: Timestamp = new Timestamp(System.currentTimeMillis),
                    var updatedAt: Timestamp = new Timestamp(System.currentTimeMillis))
-  extends BaseStarmanTableWithTimestamps {
+  extends BaseStarmanTableWithTimestamps with CacheableTable[Profile] {
 
   def user = fetchOne {
     from(Users)(u => where(u.id === userId) select(u))

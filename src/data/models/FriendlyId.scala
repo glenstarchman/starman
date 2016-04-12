@@ -14,7 +14,7 @@ case class FriendlyId(var id: Long = 0,
                       var hash: String,
                       var createdAt: Timestamp=new Timestamp(System.currentTimeMillis),
                       var updatedAt: Timestamp=new Timestamp(System.currentTimeMillis))
-  extends BaseStarmanTableWithTimestamps {
+  extends BaseStarmanTableWithTimestamps with CacheableTable[FriendlyId] {
 
 }
 

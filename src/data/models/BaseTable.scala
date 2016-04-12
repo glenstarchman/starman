@@ -143,6 +143,7 @@ trait CompanionTable[M <: BaseStarmanTableWithTimestamps] {
     try {
       withTransaction {
         model.delete(id)
+        Redis.delete(s"${modelName}:${id}")
       }
       true
     } catch {

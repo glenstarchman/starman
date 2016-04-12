@@ -113,7 +113,7 @@ object StarmanSchema extends Schema with  PrimitiveTypeMode with Log {
       val savedObj = obj.id match {
         case 0L =>  withTransaction { t.insert(obj) }
         case _ => {
-          withTransaction { t.update(obj) ; Redis.set(obj.baseKey, obj)}
+          withTransaction { t.update(obj) ; Redis.setAsync(obj.baseKey, obj)}
           obj
         }
       }
